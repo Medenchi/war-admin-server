@@ -6,8 +6,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN';
-const CHAT_ID = 'YOUR_CHAT_ID';
+const BOT_TOKEN = '7899199599:AAEfjophHE9ncdKrNbh8YvTe2Pf57jgoGs0';
+const CHAT_ID = '7899199599';
 
 let currentCode = null;
 
