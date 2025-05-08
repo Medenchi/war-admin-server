@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>Админка</title>
+    <title>Админка MoonStudio</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet"/>
     <style>
@@ -37,11 +37,10 @@
             cursor: pointer;
         }
 
-        .list-item {
-            background: #333;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 5px;
+        .section-title {
+            text-align: center;
+            margin-top: 30px;
+            color: #ff6b6b;
         }
 
         .preview-container {
@@ -63,10 +62,15 @@
             border-radius: 10px;
         }
 
-        .section-title {
-            text-align: center;
-            margin-bottom: 10px;
-            color: #ff6b6b;
+        .hidden {
+            display: none !important;
+        }
+
+        .list-item {
+            background: #333;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
         }
 
         .actions {
@@ -90,41 +94,59 @@
     <input type="range" id="waterOpacity" min="0.05" max="0.5" step="0.05" value="0.2">
     <label for="waterOpacity">Прозрачность: <span id="opacityValue">0.2</span></label>
 
+    <select id="targetBlock" onchange="handleTargetSelect()">
+        <option value="">Выберите блок</option>
+        <option value="reviews">Добавить как отзыв</option>
+        <option value="services">Добавить как услугу</option>
+        <option value="portfolio">Добавить как работу</option>
+    </select>
+
     <div class="preview-container">
         <p>Предпросмотр:</p>
-        <img id="waterPreview" src="" alt="Предпросмотр с водяным знаком" style="display:none;">
+        <img id="waterPreview" src="" alt="С водяным знаком" style="display:none;">
     </div>
 
-    <button onclick="saveWatermarked()">Сохранить с водяным знаком</button><hr>
+    <hr>
+
+    <!-- Форма для Отзывов -->
+    <div id="form-review" class="hidden">
+        <h3>Форма: Добавить отзыв</h3>
+        <textarea id="reviewText" placeholder="Текст отзыва"></textarea>
+        <input type="text" id="reviewAuthor" placeholder="Имя автора">
+        <input type="number" id="reviewRating" min="1" max="5" step="0.1" placeholder="Рейтинг (1-5)">
+        <button onclick="saveToReview()">Сохранить в отзывы</button>
+    </div>
+
+    <!-- Форма для Услуг -->
+    <div id="form-service" class="hidden">
+        <h3>Форма: Добавить услугу</h3>
+        <input type="text" id="serviceName" placeholder="Название услуги">
+        <textarea id="serviceDescription" placeholder="Описание услуги"></textarea>
+        <button onclick="saveToService()">Сохранить в услуги</button>
+    </div>
+
+    <!-- Форма для Портфолио -->
+    <div id="form-portfolio" class="hidden">
+        <h3>Форма: Добавить работу</h3>
+        <button onclick="saveToPortfolio()">Сохранить в портфолио</button>
+    </div>
 
     <!-- Отзывы -->
-    <h2 class="section-title">Управление отзывами</h2>
-    <textarea id="reviewText" placeholder="Текст отзыва"></textarea>
-    <input type="text" id="reviewAuthor" placeholder="Имя автора">
-    <input type="number" id="reviewRating" min="1" max="5" step="0.1" placeholder="Рейтинг (1-5)">
-    <input type="file" id="reviewImageFile" accept="image/*">
-    <button onclick="addReview()">Добавить отзыв</button>
+    <h2 class="section-title">Отзывы</h2>
     <div id="reviewsList"></div><hr>
 
     <!-- Услуги -->
-    <h2 class="section-title">Управление услугами</h2>
-    <input type="text" id="serviceName" placeholder="Название услуги">
-    <textarea id="serviceDescription" placeholder="Описание услуги"></textarea>
-    <input type="file" id="serviceImageFile" accept="image/*">
-    <button onclick="addService()">Добавить услугу</button>
+    <h2 class="section-title">Услуги</h2>
     <div id="servicesList"></div><hr>
 
     <!-- Портфолио -->
-    <h2 class="section-title">Управление портфолио</h2>
-    <input type="file" id="portfolioImageFile" accept="image/*">
-    <button onclick="addPortfolio()">Добавить работу</button>
+    <h2 class="section-title">Портфолио</h2>
     <div id="portfolioList"></div><hr>
 
     <!-- Контакты -->
     <h2 class="section-title">Контакты</h2>
     <textarea id="contactInfo">Telegram: @yourusername<br>Email: example@example.com</textarea>
     <button onclick="saveContacts()">Сохранить контакты</button>
-
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -141,13 +163,14 @@
         appId: "1:154686593917:web:c777e00ae5096e048eca14"
     };
 
-    // Инициализация Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     function refPath(path) {
         return db.ref(path);
     }
+
+    let currentWatermarkedData = null;
 
     // --- Чтение файла ---
     function readFileAsDataURL(file, callback) {
@@ -156,7 +179,7 @@
         reader.readAsDataURL(file);
     }
 
-    // --- Наложение водяного знака ---
+    // --- Наложение хаотичной вотермарки ---
     async function applyWatermark(imageUrl, watermarkText, opacity, callback) {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
@@ -170,17 +193,16 @@
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
 
-            // Текст водяного знака
-            ctx.save();
-            ctx.globalAlpha = parseFloat(opacity);
             ctx.font = "bold 30px 'Press Start 2P'";
-            ctx.fillStyle = "#ffffff";
+            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
             ctx.textAlign = "center";
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.rotate(-Math.PI / 12);
-            ctx.fillText(watermarkText, -canvas.width / 4, -canvas.height / 4);
-            ctx.fillText(watermarkText, canvas.width / 4, canvas.height / 4);
-            ctx.restore();
+
+            // Хаотично наложенные водяные знаки
+            for (let i = 0; i < 20; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                ctx.fillText(watermarkText, x, y);
+            }
 
             // Экспорт изображения
             canvas.toBlob(blob => {
@@ -191,13 +213,13 @@
         };
     }
 
-    // --- Предпросмотр водяного знака ---
-    async function previewWatermarked() {
+    // --- Предпросмотр ---
+    function previewWatermarked() {
         const fileInput = document.getElementById("waterImageInput");
         const text = document.getElementById("waterText").value || "SigmaGamblers";
         const opacity = parseFloat(document.getElementById("waterOpacity").value);
 
-        document.getElementById("opacityValue").innerText = opacity;
+        document.getElementById("opacityValue").innerText = opacity.toFixed(2);
 
         if (!fileInput.files[0]) return alert("Выберите изображение");
 
@@ -205,100 +227,98 @@
             applyWatermark(imageData, text, opacity, watermarkedData => {
                 document.getElementById("waterPreview").src = watermarkedData;
                 document.getElementById("waterPreview").style.display = "block";
+                currentWatermarkedData = watermarkedData;
             });
         });
     }
 
-    // --- Сохранение с водяным знаком ---
-    async function saveWatermarked() {
-        const fileInput = document.getElementById("waterImageInput");
-        const text = document.getElementById("waterText").value || "SigmaGamblers";
-        const opacity = parseFloat(document.getElementById("waterOpacity").value);
+    // --- Обработка выбора блока ---
+    function handleTargetSelect() {
+        const block = document.getElementById("targetBlock").value;
+        document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
 
-        if (!fileInput.files[0]) return alert("Выберите изображение");
-
-        readFileAsDataURL(fileInput.files[0], imageData => {
-            applyWatermark(imageData, text, opacity, watermarkedData => {
-                const id = Date.now();
-                refPath(`watermarked/${id}`).set({ image: watermarkedData }, err => {
-                    if (err) {
-                        alert("Ошибка при добавлении работы");
-                    } else {
-                        alert("Фото с водяным знаком сохранено!");
-                        loadWatermarkedImages();
-                        fileInput.value = "";
-                    }
-                });
-            });
-        });
+        if (block === "reviews") {
+            document.getElementById("form-review").classList.remove("hidden");
+        } else if (block === "services") {
+            document.getElementById("form-service").classList.remove("hidden");
+        } else if (block === "portfolio") {
+            document.getElementById("form-portfolio").classList.remove("hidden");
+        }
     }
 
-    // --- Загрузка водяных фото ---
-    function loadWatermarkedImages() {
-        refPath("watermarked").on("value", snapshot => {
-            const container = document.getElementById("watermarkedContainer");
-            container.innerHTML = "";
-
-            if (!snapshot.exists()) return;
-
-            snapshot.forEach(child => {
-                const data = child.val();
-                const div = document.createElement("div");
-                div.className = "list-item";
-                div.innerHTML = `
-                    <img src="${data.image}" width="100%" style="margin-bottom:10px;">
-                    <button class="actions" onclick="deleteWatermarked('${child.key}')">Удалить</button>`;
-                container.appendChild(div);
-            });
-        });
-    }
-
-    function deleteWatermarked(id) {
-        refPath(`watermarked/${id}`).remove(() => loadWatermarkedImages());
-    }
-
-    // --- Добавление отзыва с водяным знаком (берёт последнее сохранённое) ---
-    function addReview() {
+    // --- Сохранение в отзывы ---
+    function saveToReview() {
         const text = document.getElementById("reviewText").value.trim();
         const author = document.getElementById("reviewAuthor").value.trim();
         const rating = parseFloat(document.getElementById("reviewRating").value.trim());
-        const fileInput = document.getElementById("reviewImageFile");
-        const file = fileInput.files[0];
 
-        if (!text || !author || !rating || !file) {
-            alert("Заполните все поля и выберите фото");
+        if (!text || !author || !rating || !currentWatermarkedData) {
+            alert("Заполните все поля и загрузите изображение");
             return;
         }
 
-        readFileAsDataURL(file, imageData => {
-            // Получаем последнюю водяную марку
-            refPath("watermarked").limitToLast(1).once("value", snap => {
-                let watermarkedLogo = null;
-                snap.forEach(child => {
-                    watermarkedLogo = child.val().image;
-                });
-
-                applyWatermark(imageData, watermarkedLogo ? "" : "MoonStudio", 0.2, watermarkedData => {
-                    const id = Date.now();
-                    refPath(`reviews/${id}`).set({ text, author, rating, image: watermarkedData }, err => {
-                        if (err) {
-                            alert("Ошибка при добавлении отзыва");
-                        } else {
-                            alert("Отзыв добавлен с водяным знаком");
-                            loadReviews();
-                            clearFields(["reviewText", "reviewAuthor", "reviewRating"]);
-                            fileInput.value = "";
-                        }
-                    });
-                });
-            });
+        const id = Date.now();
+        refPath(`reviews/${id}`).set({ text, author, rating, image: currentWatermarkedData }, err => {
+            if (err) {
+                alert("Ошибка при добавлении отзыва");
+            } else {
+                alert("Отзыв добавлен с водяным знаком");
+                loadReviews();
+                clearFields(["reviewText", "reviewAuthor", "reviewRating"]);
+                document.getElementById("targetBlock").value = "";
+                document.getElementById("form-review").classList.add("hidden");
+                currentWatermarkedData = null;
+            }
         });
     }
 
-    function deleteReview(id) {
-        refPath(`reviews/${id}`).remove(() => loadReviews());
+    // --- Сохранение в услуги ---
+    function saveToService() {
+        const title = document.getElementById("serviceName").value.trim();
+        const description = document.getElementById("serviceDescription").value.trim();
+
+        if (!title || !description || !currentWatermarkedData) {
+            alert("Заполните все поля и загрузите изображение");
+            return;
+        }
+
+        const id = Date.now();
+        refPath(`services/${id}`).set({ title, description, image: currentWatermarkedData }, err => {
+            if (err) {
+                alert("Ошибка при добавлении услуги");
+            } else {
+                alert("Услуга добавлена с водяным знаком");
+                loadServices();
+                clearFields(["serviceName", "serviceDescription"]);
+                document.getElementById("targetBlock").value = "";
+                document.getElementById("form-service").classList.add("hidden");
+                currentWatermarkedData = null;
+            }
+        });
     }
 
+    // --- Сохранение в портфолио ---
+    function saveToPortfolio() {
+        if (!currentWatermarkedData) {
+            alert("Загрузите изображение с водяным знаком");
+            return;
+        }
+
+        const id = Date.now();
+        refPath(`portfolio/${id}`).set({ image: currentWatermarkedData }, err => {
+            if (err) {
+                alert("Ошибка при добавлении работы");
+            } else {
+                alert("Работа добавлена с водяным знаком");
+                loadPortfolio();
+                document.getElementById("targetBlock").value = "";
+                document.getElementById("form-portfolio").classList.add("hidden");
+                currentWatermarkedData = null;
+            }
+        });
+    }
+
+    // --- Загрузка данных ---
     function loadReviews() {
         refPath("reviews").on("value", snapshot => {
             const container = document.getElementById("reviewsList");
@@ -320,44 +340,8 @@
         });
     }
 
-    // --- Добавление услуги с водяной маркой ---
-    function addService() {
-        const title = document.getElementById("serviceName").value.trim();
-        const description = document.getElementById("serviceDescription").value.trim();
-        const fileInput = document.getElementById("serviceImageFile");
-        const file = fileInput.files[0];
-
-        if (!title || !description || !file) {
-            alert("Заполните все поля и выберите изображение");
-            return;
-        }
-
-        readFileAsDataURL(file, imageData => {
-            refPath("watermarked").limitToLast(1).once("value", snap => {
-                let watermarkedLogo = null;
-                snap.forEach(child => {
-                    watermarkedLogo = child.val().image;
-                });
-
-                applyWatermark(imageData, watermarkedLogo ? "" : "MoonStudio", 0.2, watermarkedData => {
-                    const id = Date.now();
-                    refPath(`services/${id}`).set({ title, description, image: watermarkedData }, err => {
-                        if (err) {
-                            alert("Ошибка при добавлении услуги");
-                        } else {
-                            alert("Услуга добавлена с водяным знаком");
-                            loadServices();
-                            clearFields(["serviceName", "serviceDescription"]);
-                            fileInput.value = "";
-                        }
-                    });
-                });
-            });
-        });
-    }
-
-    function deleteService(id) {
-        refPath(`services/${id}`).remove(() => loadServices());
+    function deleteReview(id) {
+        refPath(`reviews/${id}`).remove(() => loadReviews());
     }
 
     function loadServices() {
@@ -379,37 +363,8 @@
         });
     }
 
-    // --- Добавление портфолио с водяным знаком ---
-    function addPortfolio() {
-        const fileInput = document.getElementById("portfolioImageFile");
-        const file = fileInput.files[0];
-        if (!file) return alert("Выберите изображение");
-
-        readFileAsDataURL(file, imageData => {
-            refPath("watermarked").limitToLast(1).once("value", snap => {
-                let watermarkedLogo = null;
-                snap.forEach(child => {
-                    watermarkedLogo = child.val().image;
-                });
-
-                applyWatermark(imageData, watermarkedLogo ? "" : "MoonStudio", 0.2, watermarkedData => {
-                    const id = Date.now();
-                    refPath(`portfolio/${id}`).set({ image: watermarkedData }, err => {
-                        if (err) {
-                            alert("Ошибка при добавлении работы");
-                        } else {
-                            alert("Работа добавлена с водяным знаком");
-                            loadPortfolio();
-                            fileInput.value = "";
-                        }
-                    });
-                });
-            });
-        });
-    }
-
-    function deletePortfolio(id) {
-        refPath(`portfolio/${id}`).remove(() => loadPortfolio());
+    function deleteService(id) {
+        refPath(`services/${id}`).remove(() => loadServices());
     }
 
     function loadPortfolio() {
@@ -426,6 +381,10 @@
                 container.appendChild(div);
             });
         });
+    }
+
+    function deletePortfolio(id) {
+        refPath(`portfolio/${id}`).remove(() => loadPortfolio());
     }
 
     // --- Контакты ---
@@ -464,21 +423,19 @@
     }
 
     window.onload = () => {
-        // Подгрузка данных
-        refPath("contacts").on("value", snap => {
-            document.getElementById("contactInfo").value = snap.val() || "Telegram: @yourusername<br>Email: example@example.com";
+        document.getElementById("waterOpacity").addEventListener("input", e => {
+            document.getElementById("opacityValue").innerText = e.target.value;
         });
-
-        refPath("watermarked").on("value", () => loadWatermarkedImages());
 
         loadServices();
         loadPortfolio();
         loadReviews();
+
+        refPath("contacts").once("value", snap => {
+            document.getElementById("contactInfo").value = snap.val() || "Telegram: @yourusername<br>Email: example@example.com";
+        });
     };
 </script>
-
-<!-- Дополнительный контейнер для водяных марок -->
-<div id="watermarkedContainer"></div>
 
 </body>
 </html>
