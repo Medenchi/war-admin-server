@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>SigmaGamblers</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet"/>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -41,13 +41,6 @@
             padding: 0 20px;
         }
 
-        .loading-text {
-            text-align: center;
-            color: #ccc;
-            margin: 40px 0;
-            font-size: 18px;
-        }
-
         /* Услуги */
         .services-grid {
             display: grid;
@@ -77,6 +70,23 @@
         }
 
         /* Портфолио */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .portfolio-item {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+
+        .portfolio-item.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         .portfolio-item img {
             width: 100%;
             height: 180px;
@@ -167,6 +177,13 @@
             color: #ccc;
         }
 
+        .loading-text {
+            text-align: center;
+            color: #ccc;
+            margin: 40px 0;
+            font-size: 18px;
+        }
+
         .overall-rating {
             text-align: center;
             font-size: 20px;
@@ -180,11 +197,14 @@
 <!-- Шапка -->
 <header>
     <img src="" alt="Логотип" class="logo" id="siteLogo">
-    <div class="studio-name">SigmaGamblers</div>
+    <div class="studio-name">SIGMAGABLERS</div>
 </header>
 
 <!-- Индикатор загрузки -->
 <div class="loading-text" id="loadingText">⏳ Подождите, блоки информации загружаются...</div>
+
+<!-- Герой -->
+<section class="hero"></section>
 
 <!-- Портфолио -->
 <section id="portfolio" class="section">
@@ -221,13 +241,13 @@
 
 <!-- Футер -->
 <footer>
-    &copy; 2025 SigmaGamblers — С любовью к дизайну!
+    &copy; 2025 SIGMAGABLERS — С любовью к дизайну!
 </footer>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script>
-    // 🔑 ТВОЙ API CONFIG
+    // 🔑 Твой Firebase config
     const firebaseConfig = {
         apiKey: "AIzaSyCDaptwQubkzkAkHSSi_GpMhRHFasWFXvw",
         authDomain: "moonstudio-db.firebaseapp.com",
@@ -246,6 +266,8 @@
         return db.ref(path);
     }
 
+    let currentWatermarkedData = null;
+
     // --- Загрузка данных ---
     function loadData(path, callback) {
         refPath(path).on('value', snapshot => {
@@ -260,7 +282,7 @@
     // --- Логотип ---
     function loadLogo() {
         loadData("logo", data => {
-            document.getElementById("siteLogo").src = data || "https://via.placeholder.com/60x60?text=Logo";
+            document.getElementById("siteLogo").src = data || "https://via.placeholder.com/60x60?text=SG";
         });
     }
 
@@ -331,7 +353,6 @@
                     <div class="review-rating">${stars}</div>
                     <button class="review-button" onclick="openWorkModal('${r.image}')">ПОСМОТРЕТЬ РАБОТУ</button>
                 `;
-
                 container.appendChild(div);
 
                 setTimeout(() => {
