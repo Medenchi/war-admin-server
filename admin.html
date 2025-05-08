@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Админка</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <title>Админка MoonStudio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet"/>
     <style>
         body {
             margin: 0;
@@ -26,7 +26,6 @@
             width: 100%;
             margin-top: 10px;
             padding: 10px;
-            font-family: 'Montserrat';
             font-size: 14px;
         }
 
@@ -64,7 +63,7 @@
     <!-- Логотип -->
     <h2>Изменить логотип</h2>
     <input type="file" id="logoFile" accept="image/*">
-    <img id="currentLogo" src="" alt="Логотип" width="100" style="margin-top:10px;"><br>
+    <img id="currentLogo" src="" alt="Логотип" width="100" style="margin-top:10px;">
     <button onclick="uploadLogo()">Загрузить</button><hr>
 
     <!-- Отзывы -->
@@ -96,10 +95,11 @@
     <button onclick="saveContacts()">Сохранить</button>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script>
-    // 🔑 ТВОЙ API CONFIG
+    // 🔑 Firebase config
     const firebaseConfig = {
         apiKey: "AIzaSyCDaptwQubkzkAkHSSi_GpMhRHFasWFXvw",
         authDomain: "moonstudio-db.firebaseapp.com",
@@ -110,7 +110,6 @@
         appId: "1:154686593917:web:c777e00ae5096e048eca14"
     };
 
-    // Инициализация Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -118,14 +117,54 @@
         return db.ref(path);
     }
 
-    // --- Чтение файла как Base64 ---
+    // --- Чтение файла ---
     function readFileAsDataURL(file, callback) {
         const reader = new FileReader();
         reader.onload = e => callback(e.target.result);
         reader.readAsDataURL(file);
     }
 
-    // --- Логотип ---
+    // --- Наложение водяного знака ---
+    async function applyWatermark(imageUrl, logoUrl, text, callback) {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const img = new Image();
+        const logo = new Image();
+
+        img.crossOrigin = "Anonymous";
+        logo.crossOrigin = "Anonymous";
+
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            // Наложение логотипа
+            logo.onload = () => {
+                const logoSize = Math.min(canvas.width, canvas.height) * 0.2;
+                ctx.globalAlpha = 0.2;
+                ctx.drawImage(logo, canvas.width - logoSize - 20, canvas.height - logoSize - 20, logoSize, logoSize);
+                ctx.globalAlpha = 1;
+
+                // Надпись SigmaGamblers
+                ctx.font = "bold 20px 'Press Start 2P'";
+                ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+                ctx.fillText(text, 20, canvas.height - 20);
+
+                // Экспорт с водяным знаком
+                canvas.toBlob(blob => {
+                    const reader = new FileReader();
+                    reader.onload = () => callback(reader.result); // base64
+                    reader.readAsDataURL(blob);
+                }, "image/png");
+            };
+            logo.src = logoUrl || "https://via.placeholder.com/100x100?text=Logo";
+        };
+        img.src = imageUrl;
+    }
+
+    // --- Загрузка логотипа ---
     function uploadLogo() {
         const fileInput = document.getElementById("logoFile");
         const file = fileInput.files[0];
@@ -150,7 +189,7 @@
     }
 
     // --- Отзывы ---
-    function addReview() {
+    async function addReview() {
         const text = document.getElementById("reviewText").value.trim();
         const author = document.getElementById("reviewAuthor").value.trim();
         const rating = parseFloat(document.getElementById("reviewRating").value.trim());
@@ -162,17 +201,26 @@
             return;
         }
 
+        // Читаем основное изображение
         readFileAsDataURL(file, imageData => {
-            const id = Date.now();
-            refPath(`reviews/${id}`).set({ text, author, rating, image: imageData }, err => {
-                if (err) {
-                    alert("Ошибка при добавлении отзыва");
-                } else {
-                    alert("Отзыв добавлен");
-                    loadReviews();
-                    clearFields(["reviewText", "reviewAuthor", "reviewRating"]);
-                    fileInput.value = "";
-                }
+            // Получаем текущий логотип
+            refPath("logo").once("value", logoSnap => {
+                const logoUrl = logoSnap.val() || "https://via.placeholder.com/100x100?text=Logo";
+
+                // Накладываем водяной знак
+                applyWatermark(imageData, logoUrl, "SigmaGamblers", watermarkedData => {
+                    const id = Date.now();
+                    refPath(`reviews/${id}`).set({ text, author, rating, image: watermarkedData }, err => {
+                        if (err) {
+                            alert("Ошибка при добавлении отзыва");
+                        } else {
+                            alert("Отзыв добавлен с водяным знаком");
+                            loadReviews();
+                            clearFields(["reviewText", "reviewAuthor", "reviewRating"]);
+                            fileInput.value = "";
+                        }
+                    });
+                });
             });
         });
     }
@@ -197,34 +245,14 @@
                     "${r.text}" — ${r.author}<br>
                     <small class="rating-stars">${stars}</small><br>
                     <img src="${r.image}" width="100"><br>
-                    <div class="actions">
-                        <button onclick="deleteReview('${child.key}')">Удалить</button>
-                    </div>`;
+                    <button onclick="deleteReview('${child.key}')">Удалить</button>`;
                 container.appendChild(div);
             });
         });
     }
 
-    function renderStars(rating) {
-        const fullStars = Math.floor(rating);
-        const hasHalf = rating % 1 >= 0.5;
-        let starsHTML = "";
-
-        for (let i = 0; i < 5; i++) {
-            if (i < fullStars) {
-                starsHTML += "⭐";
-            } else if (hasHalf && i === fullStars) {
-                starsHTML += "⭐";
-            } else {
-                starsHTML += "☆";
-            }
-        }
-
-        return `${starsHTML} (${rating})`;
-    }
-
     // --- Услуги ---
-    function addService() {
+    async function addService() {
         const title = document.getElementById("serviceName").value.trim();
         const description = document.getElementById("serviceDescription").value.trim();
         const fileInput = document.getElementById("serviceImageFile");
@@ -235,17 +263,26 @@
             return;
         }
 
+        // Читаем изображение
         readFileAsDataURL(file, imageData => {
-            const id = Date.now();
-            refPath(`services/${id}`).set({ title, description, image: imageData }, err => {
-                if (err) {
-                    alert("Ошибка при добавлении услуги");
-                } else {
-                    alert("Услуга добавлена");
-                    loadServices();
-                    clearFields(["serviceName", "serviceDescription"]);
-                    fileInput.value = "";
-                }
+            // Получаем логотип
+            refPath("logo").once("value", logoSnap => {
+                const logoUrl = logoSnap.val() || "https://via.placeholder.com/100x100?text=Logo";
+
+                // Накладываем водяной знак
+                applyWatermark(imageData, logoUrl, "SigmaGamblers", watermarkedData => {
+                    const id = Date.now();
+                    refPath(`services/${id}`).set({ title, description, image: watermarkedData }, err => {
+                        if (err) {
+                            alert("Ошибка при добавлении услуги");
+                        } else {
+                            alert("Услуга добавлена с водяным знаком");
+                            loadServices();
+                            clearFields(["serviceName", "serviceDescription"]);
+                            fileInput.value = "";
+                        }
+                    });
+                });
             });
         });
     }
@@ -267,30 +304,37 @@
                 div.innerHTML = `
                     <strong>${s.title}</strong><br>${s.description}<br>
                     <img src="${s.image}" width="100"><br>
-                    <div class="actions">
-                        <button onclick="deleteService('${child.key}')">Удалить</button>
-                    </div>`;
+                    <button onclick="deleteService('${child.key}')">Удалить</button>`;
                 container.appendChild(div);
             });
         });
     }
 
     // --- Портфолио ---
-    function addPortfolio() {
+    async function addPortfolio() {
         const fileInput = document.getElementById("portfolioImageFile");
         const file = fileInput.files[0];
         if (!file) return alert("Выберите изображение");
 
+        // Читаем изображение
         readFileAsDataURL(file, imageData => {
-            const id = Date.now();
-            refPath(`portfolio/${id}`).set({ image: imageData }, err => {
-                if (err) {
-                    alert("Ошибка при добавлении работы");
-                } else {
-                    alert("Работа добавлена");
-                    loadPortfolio();
-                    fileInput.value = "";
-                }
+            // Получаем логотип
+            refPath("logo").once("value", logoSnap => {
+                const logoUrl = logoSnap.val() || "https://via.placeholder.com/100x100?text=Logo";
+
+                // Накладываем водяной знак
+                applyWatermark(imageData, logoUrl, "SigmaGamblers", watermarkedData => {
+                    const id = Date.now();
+                    refPath(`portfolio/${id}`).set({ image: watermarkedData }, err => {
+                        if (err) {
+                            alert("Ошибка при добавлении работы");
+                        } else {
+                            alert("Работа добавлена с водяным знаком");
+                            loadPortfolio();
+                            fileInput.value = "";
+                        }
+                    });
+                });
             });
         });
     }
@@ -309,9 +353,7 @@
                 const p = child.val();
                 const div = document.createElement("div");
                 div.className = "list-item";
-                div.innerHTML = `
-                    <img src="${p.image}" width="100"><br>
-                    <button onclick="deletePortfolio('${child.key}')">Удалить</button>`;
+                div.innerHTML = `<img src="${p.image}" width="100"><br><button onclick="deletePortfolio('${child.key}')">Удалить</button>`;
                 container.appendChild(div);
             });
         });
@@ -329,25 +371,40 @@
         });
     }
 
+    // --- Вспомогательные функции ---
     function clearFields(ids) {
         ids.forEach(id => document.getElementById(id).value = "");
     }
 
-    // --- Вход в админку ---
+    function renderStars(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalf = rating % 1 >= 0.5;
+        let starsHTML = "";
+
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                starsHTML += "⭐";
+            } else if (hasHalf && i === fullStars) {
+                starsHTML += "⭐";
+            } else {
+                starsHTML += "☆";
+            }
+        }
+
+        return `${starsHTML} (${rating})`;
+    }
+
     async function checkPassword() {
         const input = prompt("Введите пароль:");
         const hash = CryptoJS.SHA256(input).toString();
         if (hash !== "5c487d4a7d483e8d52435a3f8d3f3e8d") {
             alert("Неверный пароль!");
-            return false;
+            location.reload();
         }
-        return true;
     }
 
-    // --- Автообновление данных ---
-    async function initAdmin() {
-        const access = await checkPassword();
-        if (!access) location.reload();
+    window.onload = async () => {
+        await checkPassword();
 
         refPath("reviews").on("value", () => loadReviews());
         refPath("services").on("value", () => loadServices());
@@ -355,12 +412,11 @@
         refPath("contacts").on("value", snap => {
             document.getElementById("contactInfo").value = snap.val() || "Telegram: @yourusername<br>Email: example@example.com";
         });
+
         refPath("logo").on("value", snap => {
             document.getElementById("currentLogo").src = snap.val() || "https://via.placeholder.com/100x100?text=Logo";
         });
-    }
-
-    window.onload = () => initAdmin();
+    };
 </script>
 
 </body>
