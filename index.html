@@ -27,6 +27,7 @@
         .logo {
             width: 60px;
             height: auto;
+            border-radius: 5px;
         }
 
         .studio-name {
@@ -52,7 +53,6 @@
             border-radius: 12px;
             padding: 15px;
             text-align: center;
-            cursor: pointer;
         }
 
         .service-card img {
@@ -96,6 +96,18 @@
             margin-top: 10px;
             font-weight: bold;
             color: #ff6b6b;
+        }
+
+        .review-rating {
+            margin-top: 10px;
+            color: gold;
+        }
+
+        .overall-rating {
+            text-align: center;
+            font-size: 20px;
+            color: gold;
+            margin-bottom: 20px;
         }
 
         .review-button {
@@ -155,17 +167,12 @@
 
 <!-- Шапка -->
 <header>
-    <!-- Лого -->
-    <img src="https://via.placeholder.com/60x60?text=Logo" alt="Логотип" class="logo">
-
-    <!-- Название студии -->
+    <img src="" alt="Логотип" class="logo" id="siteLogo">
     <div class="studio-name">SigmaGamblers</div>
 </header>
 
 <!-- Герой -->
-<section class="hero">
-    <!-- Убрал -->
-</section>
+<section class="hero"></section>
 
 <!-- Портфолио -->
 <section id="portfolio" class="section">
@@ -182,6 +189,7 @@
 <!-- Отзывы -->
 <section id="reviews" class="section">
     <h2 style="text-align:center; color:#ff6b6b;">Отзывы клиентов</h2>
+    <div class="overall-rating" id="overallRating">Общий рейтинг: ⭐ 0.0</div>
     <div class="reviews-slider" id="reviews-container"></div>
 </section>
 
@@ -237,6 +245,13 @@
         });
     }
 
+    // --- Логотип ---
+    function loadLogo() {
+        loadData("logo", data => {
+            document.getElementById("siteLogo").src = data || "https://via.placeholder.com/60x60?text=Logo";
+        });
+    }
+
     // --- Портфолио ---
     function loadPortfolio() {
         loadData("portfolio", data => {
@@ -280,17 +295,46 @@
             container.innerHTML = "";
             if (!data) return;
 
+            let totalRating = 0;
+            let count = 0;
+
             Object.values(data).forEach(r => {
+                const stars = renderStars(r.rating);
+                totalRating += r.rating;
+                count++;
+
                 const div = document.createElement("div");
                 div.className = "review-block";
                 div.innerHTML = `
                     <p>"${r.text}"</p>
                     <div class="review-author">— ${r.author}</div>
+                    <div class="review-rating">${stars}</div>
                     <button class="review-button" onclick="openWorkModal('${r.image}')">ПОСМОТРЕТЬ РАБОТУ</button>
                 `;
                 container.appendChild(div);
             });
+
+            const avgRating = count ? (totalRating / count).toFixed(1) : 0;
+            document.getElementById("overallRating").innerHTML = `Общий рейтинг: ⭐ ${avgRating}`;
         });
+    }
+
+    function renderStars(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalf = rating % 1 >= 0.5;
+        let starsHTML = "";
+
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                starsHTML += "⭐";
+            } else if (hasHalf && i === fullStars) {
+                starsHTML += "⭐";
+            } else {
+                starsHTML += "☆";
+            }
+        }
+
+        return `${starsHTML} (${rating})`;
     }
 
     // --- Контакты ---
@@ -312,6 +356,7 @@
     }
 
     window.onload = () => {
+        loadLogo();
         loadPortfolio();
         loadServices();
         loadReviews();
