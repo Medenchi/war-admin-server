@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>SigmaGamblers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(to bottom, #1a0000, #000);
+            color: #f5f5f5;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(to right, #1a0000, #0d0000);
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-radius: 12px;
+            margin: 20px;
+        }
+
+        .logo {
+            width: 60px;
+            height: auto;
+        }
+
+        .studio-name {
+            font-size: 24px;
+            color: #ff6b6b;
+        }
+
+        .section {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Услуги */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .service-card {
+            background: #220000;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .service-card img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 10px;
+        }
+
+        /* Портфолио */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .portfolio-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        /* Отзывы */
+        .reviews-slider {
+            display: flex;
+            overflow-x: scroll;
+            scroll-snap-type: x mandatory;
+        }
+
+        .review-block {
+            scroll-snap-align: start;
+            min-width: 280px;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-right: 20px;
+            border-left: 5px solid #ff6b6b;
+        }
+
+        .review-author {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+
+        .review-button {
+            display: inline-block;
+            margin-top: 10px;
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Модальное окно */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .modal {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 80%;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px; right: 10px;
+            font-size: 24px;
+            color: #ff6b6b;
+            cursor: pointer;
+        }
+
+        .modal img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(to right, #330000, #110000);
+            margin-top: 40px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Шапка -->
+<header>
+    <!-- Лого -->
+    <img src="https://via.placeholder.com/60x60?text=Logo" alt="Логотип" class="logo">
+
+    <!-- Название студии -->
+    <div class="studio-name">SigmaGamblers</div>
+</header>
+
+<!-- Герой -->
+<section class="hero">
+    <!-- Убрал -->
+</section>
+
+<!-- Портфолио -->
+<section id="portfolio" class="section">
+    <h2 style="text-align:center; color:#ff6b6b;">Наши работы</h2>
+    <div class="portfolio-grid" id="portfolio-container"></div>
+</section>
+
+<!-- Услуги -->
+<section id="services" class="section">
+    <h2 style="text-align:center; color:#ff6b6b;">Наши услуги</h2>
+    <div class="services-grid" id="services-container"></div>
+</section>
+
+<!-- Отзывы -->
+<section id="reviews" class="section">
+    <h2 style="text-align:center; color:#ff6b6b;">Отзывы клиентов</h2>
+    <div class="reviews-slider" id="reviews-container"></div>
+</section>
+
+<!-- Контакты -->
+<section id="contacts" class="section">
+    <h2 style="text-align:center; color:#ff6b6b;">Контакты</h2>
+    <p id="contact-info" style="text-align:center;"></p>
+</section>
+
+<!-- Модальное окно -->
+<div id="workModal" class="modal-overlay">
+    <div class="modal">
+        <span class="modal-close" onclick="closeWorkModal()">❌</span>
+        <img id="modalImage" src="" alt="Пример работы">
+    </div>
+</div>
+
+<!-- Футер -->
+<footer>
+    &copy; 2025 MOONSTUDIO — Все права защищены.
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script>
+    // 🔑 ТВОЙ API CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyCDaptwQubkzkAkHSSi_GpMhRHFasWFXvw",
+        authDomain: "moonstudio-db.firebaseapp.com",
+        databaseURL: "https://moonstudio-db-default-rtdb.firebaseio.com",
+        projectId: "moonstudio-db",
+        storageBucket: "moonstudio-db.firebasestorage.app",
+        messagingSenderId: "154686593917",
+        appId: "1:154686593917:web:c777e00ae5096e048eca14"
+    };
+
+    // Инициализация Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function refPath(path) {
+        return db.ref(path);
+    }
+
+    // --- Загрузка данных ---
+    function loadData(path, callback) {
+        refPath(path).on('value', snapshot => {
+            if (snapshot.exists()) {
+                callback(snapshot.val());
+            } else {
+                callback(null);
+            }
+        });
+    }
+
+    // --- Портфолио ---
+    function loadPortfolio() {
+        loadData("portfolio", data => {
+            const container = document.getElementById("portfolio-container");
+            container.innerHTML = "";
+            if (!data) return;
+
+            Object.values(data).forEach(item => {
+                const div = document.createElement("div");
+                div.className = "portfolio-item";
+                div.innerHTML = `<img src="${item.image}" alt="">`;
+                container.appendChild(div);
+            });
+        });
+    }
+
+    // --- Услуги ---
+    function loadServices() {
+        loadData("services", data => {
+            const container = document.getElementById("services-container");
+            container.innerHTML = "";
+            if (!data) return;
+
+            Object.values(data).forEach(s => {
+                const div = document.createElement("div");
+                div.className = "service-card";
+                div.innerHTML = `
+                    <img src="${s.image}" alt="">
+                    <h3>${s.title}</h3>
+                    <p>${s.description}</p>
+                `;
+                container.appendChild(div);
+            });
+        });
+    }
+
+    // --- Отзывы ---
+    function loadReviews() {
+        loadData("reviews", data => {
+            const container = document.getElementById("reviews-container");
+            container.innerHTML = "";
+            if (!data) return;
+
+            Object.values(data).forEach(r => {
+                const div = document.createElement("div");
+                div.className = "review-block";
+                div.innerHTML = `
+                    <p>"${r.text}"</p>
+                    <div class="review-author">— ${r.author}</div>
+                    <button class="review-button" onclick="openWorkModal('${r.image}')">ПОСМОТРЕТЬ РАБОТУ</button>
+                `;
+                container.appendChild(div);
+            });
+        });
+    }
+
+    // --- Контакты ---
+    function loadContacts() {
+        loadData("contacts", data => {
+            document.getElementById("contact-info").innerHTML = data || "Telegram: @yourusername<br>Email: example@example.com";
+        });
+    }
+
+    // --- Модальное окно ---
+    function openWorkModal(imageUrl) {
+        document.getElementById("modalImage").src = imageUrl;
+        document.getElementById("workModal").style.display = "flex";
+    }
+
+    function closeWorkModal() {
+        document.getElementById("workModal").style.display = "none";
+        document.getElementById("modalImage").src = "";
+    }
+
+    window.onload = () => {
+        loadPortfolio();
+        loadServices();
+        loadReviews();
+        loadContacts();
+    };
+</script>
+
+</body>
+</html>
