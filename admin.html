@@ -2,15 +2,16 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>Админка MoonStudio</title>
+    <title>Админка</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet"/>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            margin: 0;
+            font-family: 'Montserrat', sans-serif;
             background: #111;
             color: #fff;
-            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
             padding: 40px;
         }
 
@@ -22,7 +23,7 @@
             border-radius: 10px;
         }
 
-        input, textarea, button {
+        input, textarea, button, select {
             width: 100%;
             margin-top: 10px;
             padding: 10px;
@@ -43,9 +44,29 @@
             border-radius: 5px;
         }
 
-        .rating-stars {
-            color: gold;
-            margin-top: 5px;
+        .preview-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .preview-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #555;
+            border-radius: 8px;
+        }
+
+        .watermark-settings {
+            margin-top: 20px;
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #ff6b6b;
         }
 
         .actions {
@@ -60,46 +81,56 @@
 <body>
 
 <div class="dashboard">
-    <!-- Логотип -->
-    <h2>Изменить логотип</h2>
-    <input type="file" id="logoFile" accept="image/*">
-    <img id="currentLogo" src="" alt="Логотип" width="100" style="margin-top:10px;">
-    <button onclick="uploadLogo()">Загрузить</button><hr>
+
+    <!-- Блок Вотерпреобразовалка -->
+    <h2 class="section-title">ВОТЕРПРЕОБРАЗОВАЛКА</h2>
+
+    <input type="file" id="waterImageInput" accept="image/*" onchange="previewWatermarked()">
+    <input type="text" id="waterText" placeholder="Текст водяного знака (например: SigmaGamblers)">
+    <input type="range" id="waterOpacity" min="0.05" max="0.5" step="0.05" value="0.2">
+    <label for="waterOpacity">Прозрачность: <span id="opacityValue">0.2</span></label>
+
+    <div class="preview-container">
+        <p>Предпросмотр:</p>
+        <img id="waterPreview" src="" alt="Предпросмотр с водяным знаком" style="display:none;">
+    </div>
+
+    <button onclick="saveWatermarked()">Сохранить с водяным знаком</button><hr>
 
     <!-- Отзывы -->
-    <h2>Добавить отзыв</h2>
+    <h2 class="section-title">Управление отзывами</h2>
     <textarea id="reviewText" placeholder="Текст отзыва"></textarea>
     <input type="text" id="reviewAuthor" placeholder="Имя автора">
     <input type="number" id="reviewRating" min="1" max="5" step="0.1" placeholder="Рейтинг (1-5)">
     <input type="file" id="reviewImageFile" accept="image/*">
-    <button onclick="addReview()">Добавить</button>
+    <button onclick="addReview()">Добавить отзыв</button>
     <div id="reviewsList"></div><hr>
 
     <!-- Услуги -->
-    <h2>Добавить услугу</h2>
+    <h2 class="section-title">Управление услугами</h2>
     <input type="text" id="serviceName" placeholder="Название услуги">
     <textarea id="serviceDescription" placeholder="Описание услуги"></textarea>
     <input type="file" id="serviceImageFile" accept="image/*">
-    <button onclick="addService()">Добавить</button>
+    <button onclick="addService()">Добавить услугу</button>
     <div id="servicesList"></div><hr>
 
     <!-- Портфолио -->
-    <h2>Добавить работу</h2>
+    <h2 class="section-title">Управление портфолио</h2>
     <input type="file" id="portfolioImageFile" accept="image/*">
-    <button onclick="addPortfolio()">Добавить</button>
+    <button onclick="addPortfolio()">Добавить работу</button>
     <div id="portfolioList"></div><hr>
 
     <!-- Контакты -->
-    <h2>Редактировать контакты</h2>
+    <h2 class="section-title">Контакты</h2>
     <textarea id="contactInfo">Telegram: @yourusername<br>Email: example@example.com</textarea>
-    <button onclick="saveContacts()">Сохранить</button>
+    <button onclick="saveContacts()">Сохранить контакты</button>
+
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script>
-    // 🔑 Firebase config
+    // 🔑 Твой Firebase config
     const firebaseConfig = {
         apiKey: "AIzaSyCDaptwQubkzkAkHSSi_GpMhRHFasWFXvw",
         authDomain: "moonstudio-db.firebaseapp.com",
@@ -110,6 +141,7 @@
         appId: "1:154686593917:web:c777e00ae5096e048eca14"
     };
 
+    // Инициализация Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -125,71 +157,108 @@
     }
 
     // --- Наложение водяного знака ---
-    async function applyWatermark(imageUrl, logoUrl, text, callback) {
+    async function applyWatermark(imageUrl, watermarkText, opacity, callback) {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
 
         const img = new Image();
-        const logo = new Image();
-
         img.crossOrigin = "Anonymous";
-        logo.crossOrigin = "Anonymous";
+        img.src = imageUrl;
 
         img.onload = () => {
             canvas.width = img.width;
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
 
-            // Наложение логотипа
-            logo.onload = () => {
-                const logoSize = Math.min(canvas.width, canvas.height) * 0.2;
-                ctx.globalAlpha = 0.2;
-                ctx.drawImage(logo, canvas.width - logoSize - 20, canvas.height - logoSize - 20, logoSize, logoSize);
-                ctx.globalAlpha = 1;
+            // Текст водяного знака
+            ctx.save();
+            ctx.globalAlpha = parseFloat(opacity);
+            ctx.font = "bold 30px 'Press Start 2P'";
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "center";
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(-Math.PI / 12);
+            ctx.fillText(watermarkText, -canvas.width / 4, -canvas.height / 4);
+            ctx.fillText(watermarkText, canvas.width / 4, canvas.height / 4);
+            ctx.restore();
 
-                // Надпись SigmaGamblers
-                ctx.font = "bold 20px 'Press Start 2P'";
-                ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
-                ctx.fillText(text, 20, canvas.height - 20);
-
-                // Экспорт с водяным знаком
-                canvas.toBlob(blob => {
-                    const reader = new FileReader();
-                    reader.onload = () => callback(reader.result); // base64
-                    reader.readAsDataURL(blob);
-                }, "image/png");
-            };
-            logo.src = logoUrl || "https://via.placeholder.com/100x100?text=Logo";
+            // Экспорт изображения
+            canvas.toBlob(blob => {
+                const reader = new FileReader();
+                reader.onload = () => callback(reader.result); // base64
+                reader.readAsDataURL(blob);
+            }, "image/png");
         };
-        img.src = imageUrl;
     }
 
-    // --- Загрузка логотипа ---
-    function uploadLogo() {
-        const fileInput = document.getElementById("logoFile");
-        const file = fileInput.files[0];
-        if (!file) return alert("Выберите файл");
+    // --- Предпросмотр водяного знака ---
+    async function previewWatermarked() {
+        const fileInput = document.getElementById("waterImageInput");
+        const text = document.getElementById("waterText").value || "SigmaGamblers";
+        const opacity = parseFloat(document.getElementById("waterOpacity").value);
 
-        readFileAsDataURL(file, imageData => {
-            refPath("logo").set(imageData, err => {
-                if (err) {
-                    alert("Ошибка сохранения логотипа");
-                } else {
-                    alert("Логотип обновлён");
-                    updateCurrentLogo();
-                }
+        document.getElementById("opacityValue").innerText = opacity;
+
+        if (!fileInput.files[0]) return alert("Выберите изображение");
+
+        readFileAsDataURL(fileInput.files[0], imageData => {
+            applyWatermark(imageData, text, opacity, watermarkedData => {
+                document.getElementById("waterPreview").src = watermarkedData;
+                document.getElementById("waterPreview").style.display = "block";
             });
         });
     }
 
-    function updateCurrentLogo() {
-        refPath("logo").once("value", snapshot => {
-            document.getElementById("currentLogo").src = snapshot.val() || "https://via.placeholder.com/100x100?text=Logo";
+    // --- Сохранение с водяным знаком ---
+    async function saveWatermarked() {
+        const fileInput = document.getElementById("waterImageInput");
+        const text = document.getElementById("waterText").value || "SigmaGamblers";
+        const opacity = parseFloat(document.getElementById("waterOpacity").value);
+
+        if (!fileInput.files[0]) return alert("Выберите изображение");
+
+        readFileAsDataURL(fileInput.files[0], imageData => {
+            applyWatermark(imageData, text, opacity, watermarkedData => {
+                const id = Date.now();
+                refPath(`watermarked/${id}`).set({ image: watermarkedData }, err => {
+                    if (err) {
+                        alert("Ошибка при добавлении работы");
+                    } else {
+                        alert("Фото с водяным знаком сохранено!");
+                        loadWatermarkedImages();
+                        fileInput.value = "";
+                    }
+                });
+            });
         });
     }
 
-    // --- Отзывы ---
-    async function addReview() {
+    // --- Загрузка водяных фото ---
+    function loadWatermarkedImages() {
+        refPath("watermarked").on("value", snapshot => {
+            const container = document.getElementById("watermarkedContainer");
+            container.innerHTML = "";
+
+            if (!snapshot.exists()) return;
+
+            snapshot.forEach(child => {
+                const data = child.val();
+                const div = document.createElement("div");
+                div.className = "list-item";
+                div.innerHTML = `
+                    <img src="${data.image}" width="100%" style="margin-bottom:10px;">
+                    <button class="actions" onclick="deleteWatermarked('${child.key}')">Удалить</button>`;
+                container.appendChild(div);
+            });
+        });
+    }
+
+    function deleteWatermarked(id) {
+        refPath(`watermarked/${id}`).remove(() => loadWatermarkedImages());
+    }
+
+    // --- Добавление отзыва с водяным знаком (берёт последнее сохранённое) ---
+    function addReview() {
         const text = document.getElementById("reviewText").value.trim();
         const author = document.getElementById("reviewAuthor").value.trim();
         const rating = parseFloat(document.getElementById("reviewRating").value.trim());
@@ -201,14 +270,15 @@
             return;
         }
 
-        // Читаем основное изображение
         readFileAsDataURL(file, imageData => {
-            // Получаем текущий логотип
-            refPath("logo").once("value", logoSnap => {
-                const logoUrl = logoSnap.val() || "https://via.placeholder.com/100x100?text=Logo";
+            // Получаем последнюю водяную марку
+            refPath("watermarked").limitToLast(1).once("value", snap => {
+                let watermarkedLogo = null;
+                snap.forEach(child => {
+                    watermarkedLogo = child.val().image;
+                });
 
-                // Накладываем водяной знак
-                applyWatermark(imageData, logoUrl, "SigmaGamblers", watermarkedData => {
+                applyWatermark(imageData, watermarkedLogo ? "" : "MoonStudio", 0.2, watermarkedData => {
                     const id = Date.now();
                     refPath(`reviews/${id}`).set({ text, author, rating, image: watermarkedData }, err => {
                         if (err) {
@@ -238,7 +308,6 @@
             snapshot.forEach(child => {
                 const r = child.val();
                 const stars = renderStars(r.rating);
-
                 const div = document.createElement("div");
                 div.className = "list-item";
                 div.innerHTML = `
@@ -251,8 +320,8 @@
         });
     }
 
-    // --- Услуги ---
-    async function addService() {
+    // --- Добавление услуги с водяной маркой ---
+    function addService() {
         const title = document.getElementById("serviceName").value.trim();
         const description = document.getElementById("serviceDescription").value.trim();
         const fileInput = document.getElementById("serviceImageFile");
@@ -263,14 +332,14 @@
             return;
         }
 
-        // Читаем изображение
         readFileAsDataURL(file, imageData => {
-            // Получаем логотип
-            refPath("logo").once("value", logoSnap => {
-                const logoUrl = logoSnap.val() || "https://via.placeholder.com/100x100?text=Logo";
+            refPath("watermarked").limitToLast(1).once("value", snap => {
+                let watermarkedLogo = null;
+                snap.forEach(child => {
+                    watermarkedLogo = child.val().image;
+                });
 
-                // Накладываем водяной знак
-                applyWatermark(imageData, logoUrl, "SigmaGamblers", watermarkedData => {
+                applyWatermark(imageData, watermarkedLogo ? "" : "MoonStudio", 0.2, watermarkedData => {
                     const id = Date.now();
                     refPath(`services/${id}`).set({ title, description, image: watermarkedData }, err => {
                         if (err) {
@@ -310,20 +379,20 @@
         });
     }
 
-    // --- Портфолио ---
-    async function addPortfolio() {
+    // --- Добавление портфолио с водяным знаком ---
+    function addPortfolio() {
         const fileInput = document.getElementById("portfolioImageFile");
         const file = fileInput.files[0];
         if (!file) return alert("Выберите изображение");
 
-        // Читаем изображение
         readFileAsDataURL(file, imageData => {
-            // Получаем логотип
-            refPath("logo").once("value", logoSnap => {
-                const logoUrl = logoSnap.val() || "https://via.placeholder.com/100x100?text=Logo";
+            refPath("watermarked").limitToLast(1).once("value", snap => {
+                let watermarkedLogo = null;
+                snap.forEach(child => {
+                    watermarkedLogo = child.val().image;
+                });
 
-                // Накладываем водяной знак
-                applyWatermark(imageData, logoUrl, "SigmaGamblers", watermarkedData => {
+                applyWatermark(imageData, watermarkedLogo ? "" : "MoonStudio", 0.2, watermarkedData => {
                     const id = Date.now();
                     refPath(`portfolio/${id}`).set({ image: watermarkedData }, err => {
                         if (err) {
@@ -394,30 +463,22 @@
         return `${starsHTML} (${rating})`;
     }
 
-    async function checkPassword() {
-        const input = prompt("Введите пароль:");
-        const hash = CryptoJS.SHA256(input).toString();
-        if (hash !== "5c487d4a7d483e8d52435a3f8d3f3e8d") {
-            alert("Неверный пароль!");
-            location.reload();
-        }
-    }
-
-    window.onload = async () => {
-        await checkPassword();
-
-        refPath("reviews").on("value", () => loadReviews());
-        refPath("services").on("value", () => loadServices());
-        refPath("portfolio").on("value", () => loadPortfolio());
+    window.onload = () => {
+        // Подгрузка данных
         refPath("contacts").on("value", snap => {
             document.getElementById("contactInfo").value = snap.val() || "Telegram: @yourusername<br>Email: example@example.com";
         });
 
-        refPath("logo").on("value", snap => {
-            document.getElementById("currentLogo").src = snap.val() || "https://via.placeholder.com/100x100?text=Logo";
-        });
+        refPath("watermarked").on("value", () => loadWatermarkedImages());
+
+        loadServices();
+        loadPortfolio();
+        loadReviews();
     };
 </script>
+
+<!-- Дополнительный контейнер для водяных марок -->
+<div id="watermarkedContainer"></div>
 
 </body>
 </html>
