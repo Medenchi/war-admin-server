@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>SigmaGamblers</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -41,57 +41,22 @@
             padding: 0 20px;
         }
 
-        /* Услуги */
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .service-card {
-            background: #220000;
-            border-radius: 12px;
-            padding: 15px;
+        h2.section-title {
             text-align: center;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.4s ease;
+            margin-bottom: 20px;
+            color: #ff6b6b;
         }
 
-        .service-card.loaded {
-            opacity: 1;
-            transform: translateY(0);
+        .loading-text {
+            text-align: center;
+            color: #ccc;
+            font-size: 16px;
+            margin-top: 20px;
         }
 
-        .service-card img {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            border-radius: 10px;
-        }
-
-        /* Портфолио */
-        .portfolio-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .portfolio-item {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.4s ease;
-        }
-
-        .portfolio-item.loaded {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .portfolio-item img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 12px;
+        /* Показываем/скрываем через класс hidden */
+        .hidden {
+            display: none !important;
         }
 
         /* Отзывы */
@@ -109,14 +74,6 @@
             border-radius: 10px;
             margin-right: 20px;
             border-left: 5px solid #ff6b6b;
-            opacity: 0;
-            transform: translateX(20px);
-            transition: all 0.4s ease;
-        }
-
-        .review-block.loaded {
-            opacity: 1;
-            transform: translateX(0);
         }
 
         .review-author {
@@ -134,6 +91,40 @@
             border-radius: 6px;
             font-size: 14px;
             cursor: pointer;
+        }
+
+        /* Услуги */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .service-card {
+            background: #220000;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .service-card img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 10px;
+        }
+
+        /* Портфолио */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .portfolio-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
         }
 
         /* Модальное окно */
@@ -177,13 +168,6 @@
             color: #ccc;
         }
 
-        .loading-text {
-            text-align: center;
-            color: #ccc;
-            margin: 40px 0;
-            font-size: 18px;
-        }
-
         .overall-rating {
             text-align: center;
             font-size: 20px;
@@ -200,34 +184,34 @@
     <div class="studio-name">SIGMAGABLERS</div>
 </header>
 
-<!-- Индикатор загрузки -->
-<div class="loading-text" id="loadingText">⏳ Подождите, блоки информации загружаются...</div>
-
 <!-- Герой -->
 <section class="hero"></section>
 
 <!-- Портфолио -->
-<section id="portfolio" class="section">
-    <h2 style="text-align:center; color:#ff6b6b;">Наши работы</h2>
+<section class="section">
+    <h2 class="section-title">Наши работы</h2>
+    <div class="loading-text" id="portfolioLoading">Элементы загружаются, это может занять некоторое время.</div>
     <div class="portfolio-grid" id="portfolio-container"></div>
 </section>
 
 <!-- Услуги -->
-<section id="services" class="section">
-    <h2 style="text-align:center; color:#ff6b6b;">Наши услуги</h2>
+<section class="section">
+    <h2 class="section-title">Наши услуги</h2>
+    <div class="loading-text" id="servicesLoading">Элементы загружаются, это может занять некоторое время.</div>
     <div class="services-grid" id="services-container"></div>
 </section>
 
 <!-- Отзывы -->
-<section id="reviews" class="section">
-    <h2 style="text-align:center; color:#ff6b6b;">Отзывы клиентов</h2>
+<section class="section">
+    <h2 class="section-title">Отзывы клиентов</h2>
     <div class="overall-rating" id="overallRating">Общий рейтинг: ⭐ 0.0</div>
+    <div class="loading-text" id="reviewsLoading">Элементы загружаются, это может занять некоторое время.</div>
     <div class="reviews-slider" id="reviews-container"></div>
 </section>
 
 <!-- Контакты -->
-<section id="contacts" class="section">
-    <h2 style="text-align:center; color:#ff6b6b;">Контакты</h2>
+<section class="section">
+    <h2 class="section-title">Контакты</h2>
     <p id="contact-info" style="text-align:center;"></p>
 </section>
 
@@ -247,26 +231,21 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script>
-    // 🔑 Твой Firebase config
+    // 🔑 Firebase config
     const firebaseConfig = {
         apiKey: "AIzaSyCDaptwQubkzkAkHSSi_GpMhRHFasWFXvw",
         authDomain: "moonstudio-db.firebaseapp.com",
         databaseURL: "https://moonstudio-db-default-rtdb.firebaseio.com",
         projectId: "moonstudio-db",
-        storageBucket: "moonstudio-db.firebasestorage.app",
-        messagingSenderId: "154686593917",
-        appId: "1:154686593917:web:c777e00ae5096e048eca14"
+        storageBucket: "moonstudio-db.firebasestorage.app"
     };
 
-    // Инициализация Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     function refPath(path) {
         return db.ref(path);
     }
-
-    let currentWatermarkedData = null;
 
     // --- Загрузка данных ---
     function loadData(path, callback) {
@@ -291,6 +270,8 @@
         loadData("portfolio", data => {
             const container = document.getElementById("portfolio-container");
             container.innerHTML = "";
+            document.getElementById("portfolioLoading").classList.add("hidden");
+
             if (!data) return;
 
             Object.values(data).forEach(item => {
@@ -298,10 +279,6 @@
                 div.className = "portfolio-item";
                 div.innerHTML = `<img src="${item.image}" alt="">`;
                 container.appendChild(div);
-
-                setTimeout(() => {
-                    div.classList.add("loaded");
-                }, 100);
             });
         });
     }
@@ -311,6 +288,8 @@
         loadData("services", data => {
             const container = document.getElementById("services-container");
             container.innerHTML = "";
+            document.getElementById("servicesLoading").classList.add("hidden");
+
             if (!data) return;
 
             Object.values(data).forEach(s => {
@@ -322,10 +301,6 @@
                     <p>${s.description}</p>
                 `;
                 container.appendChild(div);
-
-                setTimeout(() => {
-                    div.classList.add("loaded");
-                }, 100);
             });
         });
     }
@@ -335,13 +310,14 @@
         loadData("reviews", data => {
             const container = document.getElementById("reviews-container");
             container.innerHTML = "";
+            document.getElementById("reviewsLoading").classList.add("hidden");
+
             if (!data) return;
 
             let totalRating = 0;
             let count = 0;
 
             Object.values(data).forEach(r => {
-                const stars = renderStars(r.rating);
                 totalRating += r.rating;
                 count++;
 
@@ -350,14 +326,10 @@
                 div.innerHTML = `
                     <p>"${r.text}"</p>
                     <div class="review-author">— ${r.author}</div>
-                    <div class="review-rating">${stars}</div>
+                    <div class="review-rating">${renderStars(r.rating)}</div>
                     <button class="review-button" onclick="openWorkModal('${r.image}')">ПОСМОТРЕТЬ РАБОТУ</button>
                 `;
                 container.appendChild(div);
-
-                setTimeout(() => {
-                    div.classList.add("loaded");
-                }, 100);
             });
 
             const avgRating = count ? (totalRating / count).toFixed(1) : 0;
@@ -401,47 +373,14 @@
         document.getElementById("modalImage").src = "";
     }
 
-    // --- Индикатор загрузки ---
-    function showLoading() {
-        document.getElementById("loadingText").style.display = "block";
-    }
-
-    function hideLoading() {
-        document.getElementById("loadingText").style.display = "none";
-    }
-
-    function initLoad() {
-        showLoading();
-
-        let loadedCount = 0;
-        const totalSections = 4;
-
-        function checkLoaded() {
-            loadedCount++;
-            if (loadedCount === totalSections) {
-                setTimeout(hideLoading, 500);
-            }
-        }
-
-        loadLogo();
-        checkLoaded();
-
-        loadPortfolio();
-        checkLoaded();
-
-        loadServices();
-        checkLoaded();
-
-        loadReviews();
-        checkLoaded();
-
-        loadContacts();
-    }
-
+    // --- Инициализация ---
     window.onload = () => {
-        initLoad();
+        loadLogo();
+        loadPortfolio();
+        loadServices();
+        loadReviews();
+        loadContacts();
     };
 </script>
-
 </body>
 </html>
