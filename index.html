@@ -3,77 +3,101 @@
 <head>
     <meta charset="UTF-8" />
     <title>SigmaGamblers</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(to bottom, #1a0000, #000);
+            background: #111;
             color: #f5f5f5;
             line-height: 1.6;
         }
 
         header {
             background: linear-gradient(to right, #1a0000, #0d0000);
-            padding: 20px 30px;
+            padding: 15px 20px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             border-radius: 12px;
-            margin: 20px;
+            margin: 15px;
         }
 
         .logo {
-            width: 60px;
+            width: 50px;
             height: auto;
             border-radius: 5px;
         }
 
         .studio-name {
-            font-size: 24px;
+            font-size: 20px;
             color: #ff6b6b;
         }
 
         .section {
             max-width: 1000px;
-            margin: 40px auto;
-            padding: 0 20px;
+            margin: auto;
+            padding: 0 15px;
+            margin-top: 30px;
         }
 
         h2.section-title {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #ff6b6b;
         }
 
-        .loading-text {
+        .spinner {
             text-align: center;
-            color: #ccc;
             font-size: 16px;
-            margin-top: 20px;
+            color: #ccc;
+            margin-top: 40px;
         }
 
-        /* Показываем/скрываем через класс hidden */
-        .hidden {
-            display: none !important;
+        .spinner::after {
+            content: "";
+            width: 24px;
+            height: 24px;
+            border: 3px solid #fff;
+            border-top-color: #ff6b6b;
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin 1s infinite linear;
+            margin-left: 10px;
         }
 
-        /* Отзывы */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .portfolio-grid, .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .portfolio-item img, .service-card img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 10px;
+        }
+
         .reviews-slider {
             display: flex;
             overflow-x: scroll;
             scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
         }
 
         .review-block {
             scroll-snap-align: start;
-            min-width: 280px;
+            min-width: 260px;
             background: #1e1e1e;
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
-            margin-right: 20px;
-            border-left: 5px solid #ff6b6b;
+            margin-right: 15px;
+            border-left: 4px solid #ff6b6b;
         }
 
         .review-author {
@@ -87,53 +111,60 @@
             margin-top: 10px;
             background: #ff6b6b;
             color: white;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 6px;
             font-size: 14px;
             cursor: pointer;
         }
 
-        /* Услуги */
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .service-card {
-            background: #220000;
-            border-radius: 12px;
-            padding: 15px;
+        .overall-rating {
             text-align: center;
+            font-size: 18px;
+            color: gold;
+            margin-bottom: 20px;
         }
 
-        .service-card img {
+        footer {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(to right, #330000, #110000);
+            margin-top: 30px;
+            color: #ccc;
+        }
+
+        /* Контейнеры с данными */
+        .data-container {
+            position: relative;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            aspect-ratio: 1 / 1;
-            border-radius: 10px;
+            height: 100%;
+            background: rgba(17, 17, 17, 0.95);
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
 
-        /* Портфолио */
-        .portfolio-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
+        .loading-overlay.hidden {
+            display: none;
         }
 
-        .portfolio-item img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 12px;
+        .hidden {
+            display: none !important;
         }
 
-        /* Модальное окно */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             justify-content: center;
             align-items: center;
             z-index: 999;
@@ -143,13 +174,14 @@
             background: #1e1e1e;
             padding: 20px;
             border-radius: 12px;
-            max-width: 80%;
+            max-width: 90%;
             position: relative;
         }
 
         .modal-close {
             position: absolute;
-            top: 10px; right: 10px;
+            top: 10px;
+            right: 10px;
             font-size: 24px;
             color: #ff6b6b;
             cursor: pointer;
@@ -160,19 +192,14 @@
             border-radius: 8px;
         }
 
-        footer {
-            text-align: center;
-            padding: 20px;
-            background: linear-gradient(to right, #330000, #110000);
-            margin-top: 40px;
-            color: #ccc;
+        /* Для ленивой загрузки */
+        img[data-src] {
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .overall-rating {
-            text-align: center;
-            font-size: 20px;
-            color: gold;
-            margin-bottom: 20px;
+        img.loaded {
+            opacity: 1;
         }
     </style>
 </head>
@@ -184,28 +211,25 @@
     <div class="studio-name">SIGMAGABLERS</div>
 </header>
 
-<!-- Герой -->
-<section class="hero"></section>
-
 <!-- Портфолио -->
-<section class="section">
+<section class="section data-container">
     <h2 class="section-title">Наши работы</h2>
-    <div class="loading-text" id="portfolioLoading">Элементы загружаются, это может занять некоторое время.</div>
+    <div class="loading-overlay" id="portfolioLoader"><span>Загрузка...</span><div class="spinner"></div></div>
     <div class="portfolio-grid" id="portfolio-container"></div>
 </section>
 
 <!-- Услуги -->
-<section class="section">
+<section class="section data-container">
     <h2 class="section-title">Наши услуги</h2>
-    <div class="loading-text" id="servicesLoading">Элементы загружаются, это может занять некоторое время.</div>
+    <div class="loading-overlay" id="servicesLoader"><span>Загрузка...</span><div class="spinner"></div></div>
     <div class="services-grid" id="services-container"></div>
 </section>
 
 <!-- Отзывы -->
-<section class="section">
+<section class="section data-container">
     <h2 class="section-title">Отзывы клиентов</h2>
     <div class="overall-rating" id="overallRating">Общий рейтинг: ⭐ 0.0</div>
-    <div class="loading-text" id="reviewsLoading">Элементы загружаются, это может занять некоторое время.</div>
+    <div class="loading-overlay" id="reviewsLoader"><span>Загрузка...</span><div class="spinner"></div></div>
     <div class="reviews-slider" id="reviews-container"></div>
 </section>
 
@@ -230,8 +254,39 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
-    // 🔑 Firebase config
+    // --- Подключение Telegram Mini App ---
+    const tg = window.Telegram?.WebApp || null;
+
+    if (tg) {
+        tg.ready();
+        tg.expand(); // Расширяем на весь экран
+        document.body.style.backgroundColor = "#111";
+    }
+
+    // --- Запрос на использование localStorage ---
+    function requestLocalStorageAccess() {
+        try {
+            localStorage.setItem("test", "test");
+            localStorage.removeItem("test");
+            return true;
+        } catch (e) {
+            alert("⚠️ В браузере Телеграма отключён localStorage.\n\nПожалуйста, нажмите «Разрешить» в настройках сайта.");
+            return false;
+        }
+    }
+
+    // --- Предзагрузка или показ ошибки ---
+    if (!requestLocalStorageAccess()) {
+        document.getElementById("portfolioLoader").classList.add("hidden");
+        document.getElementById("servicesLoader").classList.add("hidden");
+        document.getElementById("reviewsLoader").classList.add("hidden");
+        document.querySelectorAll(".data-container").forEach(el => el.style.display = "none");
+        return;
+    }
+
+    // --- Инициализация Firebase ---
     const firebaseConfig = {
         apiKey: "AIzaSyCDaptwQubkzkAkHSSi_GpMhRHFasWFXvw",
         authDomain: "moonstudio-db.firebaseapp.com",
@@ -247,72 +302,113 @@
         return db.ref(path);
     }
 
-    // --- Загрузка данных ---
+    // --- Работа с кэшем ---
+    function getCached(key) {
+        const cached = localStorage.getItem("sg_cache_" + key);
+        return cached ? JSON.parse(cached) : null;
+    }
+
+    function setCached(key, data) {
+        localStorage.setItem("sg_cache_" + key, JSON.stringify(data));
+    }
+
+    // --- Загрузка данных с Firebase + кэширование ---
     function loadData(path, callback) {
+        const cached = getCached(path);
+        if (cached) {
+            callback(cached);
+        }
+
         refPath(path).on('value', snapshot => {
-            if (snapshot.exists()) {
-                callback(snapshot.val());
-            } else {
-                callback(null);
-            }
+            const data = snapshot.val();
+            if (!data) return;
+
+            callback(data);
+            setCached(path, data);
         });
     }
 
     // --- Логотип ---
     function loadLogo() {
-        loadData("logo", data => {
-            document.getElementById("siteLogo").src = data || "https://via.placeholder.com/60x60?text=SG";
+        const logoEl = document.getElementById("siteLogo");
+        const cached = getCached("logo");
+        if (cached) {
+            logoEl.src = cached;
+        }
+
+        refPath("logo").on("value", snap => {
+            const data = snap.val();
+            if (data) {
+                logoEl.src = data;
+                setCached("logo", data);
+            }
         });
     }
 
     // --- Портфолио ---
     function loadPortfolio() {
-        loadData("portfolio", data => {
-            const container = document.getElementById("portfolio-container");
-            container.innerHTML = "";
-            document.getElementById("portfolioLoading").classList.add("hidden");
+        const loader = document.getElementById("portfolioLoader");
+        const container = document.getElementById("portfolio-container");
 
-            if (!data) return;
+        loader.classList.remove("hidden");
+        loadData("portfolio", data => {
+            container.innerHTML = "";
 
             Object.values(data).forEach(item => {
                 const div = document.createElement("div");
                 div.className = "portfolio-item";
-                div.innerHTML = `<img src="${item.image}" alt="">`;
+
+                const img = document.createElement("img");
+                img.src = item.image;
+                img.alt = "";
+
+                div.appendChild(img);
                 container.appendChild(div);
             });
+
+            lazyLoadSection("portfolio-container");
+            loader.classList.add("hidden");
         });
     }
 
     // --- Услуги ---
     function loadServices() {
-        loadData("services", data => {
-            const container = document.getElementById("services-container");
-            container.innerHTML = "";
-            document.getElementById("servicesLoading").classList.add("hidden");
+        const loader = document.getElementById("servicesLoader");
+        const container = document.getElementById("services-container");
 
-            if (!data) return;
+        loader.classList.remove("hidden");
+        loadData("services", data => {
+            container.innerHTML = "";
 
             Object.values(data).forEach(s => {
                 const div = document.createElement("div");
                 div.className = "service-card";
+
+                const img = document.createElement("img");
+                img.src = s.image;
+                img.alt = "";
+
                 div.innerHTML = `
-                    <img src="${s.image}" alt="">
                     <h3>${s.title}</h3>
-                    <p>${s.description}</p>
-                `;
+                    <p>${s.description}</p>`;
+                div.prepend(img);
+
                 container.appendChild(div);
             });
+
+            lazyLoadSection("services-container");
+            loader.classList.add("hidden");
         });
     }
 
     // --- Отзывы ---
     function loadReviews() {
-        loadData("reviews", data => {
-            const container = document.getElementById("reviews-container");
-            container.innerHTML = "";
-            document.getElementById("reviewsLoading").classList.add("hidden");
+        const loader = document.getElementById("reviewsLoader");
+        const container = document.getElementById("reviews-container");
 
-            if (!data) return;
+        loader.classList.remove("hidden");
+        loadData("reviews", data => {
+            container.innerHTML = "";
 
             let totalRating = 0;
             let count = 0;
@@ -323,17 +419,27 @@
 
                 const div = document.createElement("div");
                 div.className = "review-block";
+
+                const img = document.createElement("img");
+                img.src = r.image;
+                img.alt = "";
+                img.style.width = "100%";
+                img.style.borderRadius = "10px";
+                img.style.marginBottom = "10px";
+
                 div.innerHTML = `
                     <p>"${r.text}"</p>
                     <div class="review-author">— ${r.author}</div>
-                    <div class="review-rating">${renderStars(r.rating)}</div>
-                    <button class="review-button" onclick="openWorkModal('${r.image}')">ПОСМОТРЕТЬ РАБОТУ</button>
-                `;
+                    <div class="review-rating">${renderStars(r.rating)}</div>`;
+                div.appendChild(img);
+
                 container.appendChild(div);
             });
 
             const avgRating = count ? (totalRating / count).toFixed(1) : 0;
             document.getElementById("overallRating").innerHTML = `Общий рейтинг: ⭐ ${avgRating}`;
+            lazyLoadSection("reviews-container");
+            loader.classList.add("hidden");
         });
     }
 
@@ -355,11 +461,26 @@
         return `${starsHTML} (${rating})`;
     }
 
-    // --- Контакты ---
-    function loadContacts() {
-        loadData("contacts", data => {
-            document.getElementById("contact-info").innerHTML = data || "Telegram: @yourusername<br>Email: example@example.com";
+    // --- Ленивая загрузка изображений ---
+    function lazyLoadImages(containerId) {
+        const images = document.querySelectorAll(`#${containerId} img`);
+        images.forEach(img => {
+            img.onload = () => {};
+            img.src = img.dataset.src || img.src;
         });
+    }
+
+    function lazyLoadSection(containerId) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    lazyLoadImages(containerId);
+                    observer.disconnect();
+                }
+            });
+        }, { rootMargin: "0px 0px 200px 0px" });
+
+        observer.observe(document.getElementById(containerId));
     }
 
     // --- Модальное окно ---
@@ -373,14 +494,27 @@
         document.getElementById("modalImage").src = "";
     }
 
-    // --- Инициализация ---
-    window.onload = () => {
+    // --- Автозагрузка контента ---
+    function initApp() {
         loadLogo();
         loadPortfolio();
         loadServices();
         loadReviews();
-        loadContacts();
-    };
+
+        refPath("contacts").once("value", snap => {
+            document.getElementById("contact-info").innerHTML = snap.val() || "Telegram: @yourusername<br>Email: example@example.com";
+        });
+    }
+
+    // --- Запуск приложения ---
+    if (requestLocalStorageAccess()) {
+        // Если localStorage доступен → стартуем
+        initApp();
+    } else {
+        // Если нет → запрашиваем
+        alert("Вам нужно разрешить использование localStorage в браузере Telegram");
+    }
 </script>
+
 </body>
 </html>
