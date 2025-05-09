@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>ПиздатаяАдминка</title>
+    <title>Админка SigmaGamblers</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet"/>
     <style>
@@ -78,24 +78,86 @@
             display: block;
             margin-top: 10px;
         }
+
+        .watermark-settings {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .watermark-preview {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .watermark-preview img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .edit-form {
+            margin-top: 20px;
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .edit-form input, .edit-form textarea {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+        }
+
+        .edit-form button {
+            margin-top: 10px;
+        }
+
+        .block-list {
+            margin-top: 20px;
+        }
+
+        .block-item {
+            background: #333;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .block-controls {
+            margin-top: 10px;
+        }
+
+        .block-controls button {
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
 
 <div class="dashboard">
 
+    <!-- Загрузка общих настроек водяного знака -->
+    <h2 class="section-title">Настройки водяного знака</h2>
+    <div class="watermark-settings">
+        <input type="file" id="wmLogoFile" accept="image/*" onchange="previewWmLogo()">
+        <img id="currentWmLogo" src="" alt="Логотип для водяного знака" width="60" style="margin-top:10px;">
+        <label for="wmText">Текст водяного знака:</label>
+        <input type="text" id="wmText" value="SigmaGamblers" placeholder="Например: SigmaGamblers">
+        <label for="wmOpacity">Прозрачность:</label>
+        <input type="range" id="wmOpacity" min="0.05" max="0.5" step="0.05" value="0.2">
+        <span id="opacityValue">0.2</span><br>
+        <button onclick="saveWatermarkSettings()">Сохранить настройки водяного знака</button>
+    </div><hr>
+
     <!-- Блок Вотерпреобразовалка -->
     <h2 class="section-title">ВОТЕРПРЕОБРАЗОВАЛКА</h2>
-
     <input type="file" id="waterImageInput" accept="image/*" onchange="previewWatermarked()">
-    <input type="text" id="waterText" value="SigmaGamblers" placeholder="Текст водяного знака">
-    <label for="waterOpacity">Прозрачность: <span id="opacityValue">0.2</span></label>
-    <input type="range" id="waterOpacity" min="0.05" max="0.5" step="0.05" value="0.2">
     <select id="targetBlock" onchange="handleTargetSelect()">
-        <option value="">Выберите блок для загрузки</option>
-        <option value="reviews">Добавить как отзыв</option>
-        <option value="services">Добавить как услугу</option>
-        <option value="portfolio">Добавить как работу</option>
+        <option value="">Выберите целевой блок</option>
+        <option value="reviews">Добавить в отзывы</option>
+        <option value="services">Добавить в услуги</option>
+        <option value="portfolio">Добавить в портфолио</option>
     </select>
 
     <div class="preview-container">
@@ -103,8 +165,7 @@
         <img id="waterPreview" src="" alt="С водяным знаком" style="display:none;">
     </div>
 
-    <!-- Форма для Отзывов -->
-    <div id="form-review" class="hidden">
+    <div id="form-review" class="edit-form hidden">
         <h3>Форма: Добавить отзыв</h3>
         <textarea id="reviewText_WM" placeholder="Текст отзыва"></textarea>
         <input type="text" id="reviewAuthor_WM" placeholder="Имя автора">
@@ -112,42 +173,32 @@
         <button onclick="saveToReview()">Сохранить в отзывы</button>
     </div>
 
-    <!-- Форма для Услуг -->
-    <div id="form-service" class="hidden">
+    <div id="form-service" class="edit-form hidden">
         <h3>Форма: Добавить услугу</h3>
         <input type="text" id="serviceName_WM" placeholder="Название услуги">
         <textarea id="serviceDescription_WM" placeholder="Описание услуги"></textarea>
         <button onclick="saveToService()">Сохранить в услуги</button>
     </div>
 
-    <!-- Форма для Портфолио -->
-    <div id="form-portfolio" class="hidden">
+    <div id="form-portfolio" class="edit-form hidden">
         <h3>Форма: Добавить работу</h3>
         <button onclick="saveToPortfolio()">Сохранить в портфолио</button>
-    </div><hr>
+    </div>
+
+    <button onclick="applyAndConvertCurrent()">Преобразовать в ВМ</button>
+    <div class="watermark-preview" id="watermarkPreviewContainer"></div><hr>
 
     <!-- Отзывы -->
-    <h2 class="section-title">Добавить отзыв (без водяного знака)</h2>
-    <textarea id="reviewText" placeholder="Текст отзыва"></textarea>
-    <input type="text" id="reviewAuthor" placeholder="Имя автора">
-    <input type="number" id="reviewRating" min="1" max="5" step="0.1" placeholder="Рейтинг (1-5)">
-    <input type="file" id="reviewImageFile" accept="image/*">
-    <button onclick="addReview()">Добавить</button>
-    <div id="reviewsList"></div><hr>
+    <h2 class="section-title">Отзывы</h2>
+    <div id="reviewsList" class="block-list"></div><hr>
 
     <!-- Услуги -->
-    <h2 class="section-title">Добавить услугу (без водяного знака)</h2>
-    <input type="text" id="serviceName" placeholder="Название услуги">
-    <textarea id="serviceDescription" placeholder="Описание услуги"></textarea>
-    <input type="file" id="serviceImageFile" accept="image/*">
-    <button onclick="addService()">Добавить</button>
-    <div id="servicesList"></div><hr>
+    <h2 class="section-title">Услуги</h2>
+    <div id="servicesList" class="block-list"></div><hr>
 
     <!-- Портфолио -->
-    <h2 class="section-title">Добавить работу (без водяного знака)</h2>
-    <input type="file" id="portfolioImageFile" accept="image/*">
-    <button onclick="addPortfolio()">Добавить</button>
-    <div id="portfolioList"></div><hr>
+    <h2 class="section-title">Портфолио</h2>
+    <div id="portfolioList" class="block-list"></div><hr>
 
     <!-- Контакты -->
     <h2 class="section-title">Контакты</h2>
@@ -158,7 +209,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script>
-    // 🔑 Твой Firebase config
+    // 🔑 Firebase config
     const firebaseConfig = {
         apiKey: "AIzaSyCDaptwQubkzkAkHSSi_GpMhRHFasWFXvw",
         authDomain: "moonstudio-db.firebaseapp.com",
@@ -177,6 +228,11 @@
     }
 
     let currentWatermarkedData = null;
+    let wmSettings = {
+        logo: null,
+        text: "SigmaGamblers",
+        opacity: 0.2
+    };
 
     // --- Чтение файла ---
     function readFileAsDataURL(file, callback) {
@@ -185,10 +241,42 @@
         reader.readAsDataURL(file);
     }
 
-    // --- Наложение хаотичного водяного знака ---
-    async function applyWatermark(imageUrl, watermarkText, opacity, callback) {
+    // --- Сохранение настроек водяного знака ---
+    function saveWatermarkSettings() {
+        const logoFile = document.getElementById("wmLogoFile").files[0];
+        const text = document.getElementById("wmText").value || "SigmaGamblers";
+        const opacity = parseFloat(document.getElementById("wmOpacity").value);
+
+        if (logoFile) {
+            readFileAsDataURL(logoFile, logoData => {
+                wmSettings.logo = logoData;
+                wmSettings.text = text;
+                wmSettings.opacity = opacity;
+                localStorage.setItem("wmSettings", JSON.stringify(wmSettings));
+                alert("Настройки водяного знака обновлены!");
+            });
+        } else {
+            wmSettings.text = text;
+            wmSettings.opacity = opacity;
+            localStorage.setItem("wmSettings", JSON.stringify(wmSettings));
+            alert("Настройки обновлены");
+        }
+    }
+
+    // --- Предпросмотр логотипа водяного знака ---
+    function previewWmLogo() {
+        const file = document.getElementById("wmLogoFile").files[0];
+        if (!file) return;
+
+        readFileAsDataURL(file, logoData => {
+            document.getElementById("currentWmLogo").src = logoData;
+        });
+    }
+
+    // --- Наложение водяного знака ---
+    async function applyWatermark(imageUrl, callback) {
         const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("b2d");
 
         const img = new Image();
         img.crossOrigin = "Anonymous";
@@ -199,38 +287,54 @@
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
 
+            // Текст SigmaGamblers (хаотично)
+            ctx.save();
             ctx.font = "bold 30px 'Press Start 2P'";
-            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+            ctx.fillStyle = `rgba(255, 255, 255, ${wmSettings.opacity})`;
             ctx.textAlign = "center";
 
-            // Хаотично наложенные надписи
             for (let i = 0; i < 20; i++) {
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height;
-                ctx.fillText(watermarkText, x, y);
+                ctx.fillText(wmSettings.text, x, y);
             }
 
-            // Экспорт
-            canvas.toBlob(blob => {
-                const reader = new FileReader();
-                reader.onload = () => callback(reader.result); // base64
-                reader.readAsDataURL(blob);
-            }, "image/png");
+            ctx.restore();
+
+            // Логотип водяного знака
+            if (wmSettings.logo) {
+                const logo = new Image();
+                logo.crossOrigin = "Anonymous";
+                logo.onload = () => {
+                    const size = Math.min(canvas.width, canvas.height) * 0.2;
+                    ctx.globalAlpha = 0.2;
+                    ctx.drawImage(logo, canvas.width - size - 20, canvas.height - size - 20, size, size);
+                    ctx.globalAlpha = 1;
+
+                    canvas.toBlob(blob => {
+                        const reader = new FileReader();
+                        reader.onload = () => callback(reader.result); // base64
+                        reader.readAsDataURL(blob);
+                    }, "image/png");
+                };
+                logo.src = wmSettings.logo;
+            } else {
+                canvas.toBlob(blob => {
+                    const reader = new FileReader();
+                    reader.onload = () => callback(reader.result); // base64
+                    reader.readAsDataURL(blob);
+                }, "image/png");
+            }
         };
     }
 
     // --- Предпросмотр водяного знака ---
     function previewWatermarked() {
         const fileInput = document.getElementById("waterImageInput");
-        const text = document.getElementById("waterText").value || "SigmaGamblers";
-        const opacity = parseFloat(document.getElementById("waterOpacity").value);
-
-        document.getElementById("opacityValue").innerText = opacity.toFixed(2);
-
         if (!fileInput.files[0]) return alert("Выберите изображение");
 
         readFileAsDataURL(fileInput.files[0], imageData => {
-            applyWatermark(imageData, text, opacity, watermarkedData => {
+            applyWatermark(imageData, watermarkedData => {
                 document.getElementById("waterPreview").src = watermarkedData;
                 document.getElementById("waterPreview").style.display = "block";
                 currentWatermarkedData = watermarkedData;
@@ -238,7 +342,7 @@
         });
     }
 
-    // --- Выбор блока после предпросмотра ---
+    // --- Выбор целевого блока ---
     function handleTargetSelect() {
         const block = document.getElementById("targetBlock").value;
 
@@ -319,9 +423,56 @@
                 alert("Работа добавлена с водяным знаком");
                 loadPortfolio();
                 document.getElementById("targetBlock").value = "";
-                document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
+                document.getElementById("form-portfolio").classList.add("hidden");
                 currentWatermarkedData = null;
             }
+        });
+    }
+
+    // --- Применение водяного знака к существующему изображению ---
+    function convertExistingToWatermark(url, path, key) {
+        applyWatermark(url, data => {
+            refPath(`${path}/${key}/image`).set(data, err => {
+                if (err) {
+                    alert("Ошибка при преобразовании");
+                } else {
+                    alert("Изображение обновлено с водяным знаком");
+                    loadReviews();
+                    loadServices();
+                    loadPortfolio();
+                }
+            });
+        });
+    }
+
+    // --- Обработка кнопки "Преобразовать в ВМ" ---
+    function applyAndConvertCurrent() {
+        const selectedKey = document.getElementById("convertKey").value;
+        const selectedType = document.getElementById("convertType").value;
+
+        if (!selectedType || !selectedKey) {
+            alert("Выберите тип и ключ элемента");
+            return;
+        }
+
+        refPath(`${selectedType}/${selectedKey}`).once("value", snap => {
+            const val = snap.val();
+            if (!val || !val.image) {
+                alert("Элемент не найден или нет изображения");
+                return;
+            }
+
+            applyWatermark(val.image, data => {
+                refPath(`${selectedType}/${selectedKey}/image`).set(data, err => {
+                    if (err) {
+                        alert("Ошибка при преобразовании");
+                    } else {
+                        alert("Фото обновлено с водяным знаком");
+                        document.getElementById("convertKey").value = "";
+                        document.getElementById("convertType").value = "";
+                    }
+                });
+            });
         });
     }
 
@@ -329,144 +480,84 @@
     function loadReviews() {
         refPath("reviews").on("value", snapshot => {
             const container = document.getElementById("reviewsList");
-            container.innerHTML = "";
+            container.innerHTML = "<h3>Отзывы</h3>";
+
             if (!snapshot.exists()) return;
 
             snapshot.forEach(child => {
                 const r = child.val();
-                const stars = renderStars(r.rating);
                 const div = document.createElement("div");
-                div.className = "list-item";
+                div.className = "block-item";
                 div.innerHTML = `
                     "${r.text}" — ${r.author}<br>
-                    <small class="rating-stars">${stars}</small><br>
+                    <small>Рейтинг: ⭐ ${r.rating}</small><br>
                     <img src="${r.image}" width="100"><br>
-                    <button onclick="deleteReview('${child.key}')">Удалить</button>`;
+                    <div class="block-controls">
+                        <button onclick="convertExisting('${child.key}', 'reviews')">Преобразовать в ВМ</button>
+                        <button onclick="deleteBlock('${child.key}', 'reviews')">Удалить</button>
+                    </div>
+                `;
                 container.appendChild(div);
             });
         });
-    }
-
-    function deleteReview(id) {
-        refPath(`reviews/${id}`).remove(() => loadReviews());
     }
 
     function loadServices() {
         refPath("services").on("value", snapshot => {
             const container = document.getElementById("servicesList");
-            container.innerHTML = "";
+            container.innerHTML = "<h3>Услуги</h3>";
+
             if (!snapshot.exists()) return;
 
             snapshot.forEach(child => {
                 const s = child.val();
                 const div = document.createElement("div");
-                div.className = "list-item";
+                div.className = "block-item";
                 div.innerHTML = `
                     <strong>${s.title}</strong><br>${s.description}<br>
                     <img src="${s.image}" width="100"><br>
-                    <button onclick="deleteService('${child.key}')">Удалить</button>`;
+                    <div class="block-controls">
+                        <button onclick="convertExisting('${child.key}', 'services')">Преобразовать в ВМ</button>
+                        <button onclick="deleteBlock('${child.key}', 'services')">Удалить</button>
+                    </div>`;
                 container.appendChild(div);
             });
         });
-    }
-
-    function deleteService(id) {
-        refPath(`services/${id}`).remove(() => loadServices());
     }
 
     function loadPortfolio() {
         refPath("portfolio").on("value", snapshot => {
             const container = document.getElementById("portfolioList");
-            container.innerHTML = "";
+            container.innerHTML = "<h3>Портфолио</h3>";
+
             if (!snapshot.exists()) return;
 
             snapshot.forEach(child => {
                 const p = child.val();
                 const div = document.createElement("div");
-                div.className = "list-item";
-                div.innerHTML = `<img src="${p.image}" width="100"><br><button onclick="deletePortfolio('${child.key}')">Удалить</button>`;
+                div.className = "block-item";
+                div.innerHTML = `<img src="${p.image}" width="100"><br>
+                    <div class="block-controls">
+                        <button onclick="convertExisting('${child.key}', 'portfolio')">Преобразовать в ВМ</button>
+                        <button onclick="deleteBlock('${child.key}', 'portfolio')">Удалить</button>
+                    </div>`;
                 container.appendChild(div);
             });
         });
     }
 
-    function deletePortfolio(id) {
-        refPath(`portfolio/${id}`).remove(() => loadPortfolio());
-    }
-
-    // --- Формы вне Вотерпреобразовалки ---
-    function addReview() {
-        const text = document.getElementById("reviewText").value.trim();
-        const author = document.getElementById("reviewAuthor").value.trim();
-        const rating = parseFloat(document.getElementById("reviewRating").value.trim());
-        const fileInput = document.getElementById("reviewImageFile");
-        const file = fileInput.files[0];
-
-        if (!text || !author || !rating || !file) {
-            alert("Заполните все поля и выберите фото");
-            return;
-        }
-
-        readFileAsDataURL(file, imageData => {
-            const id = Date.now();
-            refPath(`reviews/${id}`).set({ text, author, rating, image: imageData }, err => {
-                if (err) {
-                    alert("Ошибка при добавлении отзыва");
-                } else {
-                    alert("Отзыв добавлен");
-                    loadReviews();
-                    clearFields(["reviewText", "reviewAuthor", "reviewRating"]);
-                    fileInput.value = "";
-                }
-            });
+    function deleteBlock(id, type) {
+        refPath(`${type}/${id}`).remove(() => {
+            alert("Элемент удалён");
         });
     }
 
-    function addService() {
-        const title = document.getElementById("serviceName").value.trim();
-        const description = document.getElementById("serviceDescription").value.trim();
-        const fileInput = document.getElementById("serviceImageFile");
-        const file = fileInput.files[0];
-
-        if (!title || !description || !file) {
-            alert("Заполните все поля и выберите фото");
-            return;
-        }
-
-        readFileAsDataURL(file, imageData => {
-            const id = Date.now();
-            refPath(`services/${id}`).set({ title, description, image: imageData }, err => {
-                if (err) {
-                    alert("Ошибка при добавлении услуги");
-                } else {
-                    alert("Услуга добавлена");
-                    loadServices();
-                    clearFields(["serviceName", "serviceDescription"]);
-                    fileInput.value = "";
-                }
-            });
-        });
+    function convertExisting(id, type) {
+        document.getElementById("convertKey").value = id;
+        document.getElementById("convertType").value = type;
     }
 
-    function addPortfolio() {
-        const fileInput = document.getElementById("portfolioImageFile");
-        const file = fileInput.files[0];
-        if (!file) return alert("Выберите изображение");
-
-        readFileAsDataURL(file, imageData => {
-            const id = Date.now();
-            refPath(`portfolio/${id}`).set({ image: imageData }, err => {
-                if (err) {
-                    alert("Ошибка при добавлении работы");
-                } else {
-                    alert("Работа добавлена");
-                    loadPortfolio();
-                    fileInput.value = "";
-                }
-            });
-        });
-    }
-
+    // --- Контакты ---
     function saveContacts() {
         const info = document.getElementById("contactInfo").value;
         refPath("contacts").set(info, err => {
@@ -478,44 +569,41 @@
         });
     }
 
+    // --- Инициализация настроек водяного знака ---
+    function initWatermarkSettings() {
+        const saved = localStorage.getItem("wmSettings");
+        if (saved) {
+            wmSettings = JSON.parse(saved);
+            document.getElementById("wmText").value = wmSettings.text;
+            document.getElementById("wmOpacity").value = wmSettings.opacity;
+            document.getElementById("currentWmLogo").src = wmSettings.logo || "https://via.placeholder.com/60x60?text=SG";
+        }
+    }
+
     // --- Вспомогательные функции ---
     function clearFields(ids) {
         ids.forEach(id => document.getElementById(id).value = "");
     }
 
-    function renderStars(rating) {
-        const fullStars = Math.floor(rating);
-        const hasHalf = rating % 1 >= 0.5;
-        let starsHTML = "";
-
-        for (let i = 0; i < 5; i++) {
-            if (i < fullStars) {
-                starsHTML += "⭐";
-            } else if (hasHalf && i === fullStars) {
-                starsHTML += "⭐";
-            } else {
-                starsHTML += "☆";
-            }
-        }
-
-        return `${starsHTML} (${rating})`;
-    }
-
     window.onload = () => {
-        document.getElementById("waterOpacity").addEventListener("input", e => {
+        document.getElementById("wmOpacity").addEventListener("input", e => {
             document.getElementById("opacityValue").innerText = e.target.value;
         });
 
+        initWatermarkSettings();
         loadReviews();
         loadServices();
         loadPortfolio();
-        loadWatermarkedImages();
 
         refPath("contacts").once("value", snap => {
             document.getElementById("contactInfo").value = snap.val() || "Telegram: @yourusername<br>Email: example@example.com";
         });
     };
 </script>
+
+<!-- Скрытые поля для преобразования -->
+<input type="text" id="convertKey" class="hidden">
+<input type="text" id="convertType" class="hidden">
 
 </body>
 </html>
