@@ -2,185 +2,232 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>Админка SigmaGamblers</title>
+    <title>MoonStudio</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Montserrat', sans-serif;
-            background: #111;
-            color: #fff;
+            background: linear-gradient(to bottom, #1a0000, #000);
+            color: #f5f5f5;
             line-height: 1.6;
-            padding: 40px;
         }
 
-        .dashboard {
-            max-width: 500px;
-            margin: auto;
-            background: #222;
-            padding: 30px;
-            border-radius: 10px;
+        header {
+            background: linear-gradient(to right, #1a0000, #0d0000);
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-radius: 12px;
+            margin: 20px;
         }
 
-        input, textarea, button {
-            width: 100%;
-            margin-top: 10px;
-            padding: 10px;
-            font-size: 14px;
+        .logo {
+            width: 60px;
+            height: auto;
+            border-radius: 5px;
         }
 
-        button {
-            background: #ff6b6b;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-        }
-
-        h2.section-title {
-            text-align: center;
-            margin-top: 30px;
+        .studio-name {
+            font-size: 24px;
             color: #ff6b6b;
         }
 
-        .list-item {
-            background: #333;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 5px;
+        .section {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
 
-        .actions {
-            margin-top: 10px;
+        .loading-text {
+            text-align: center;
+            color: #ccc;
+            margin: 40px 0;
+            font-size: 18px;
         }
 
-        .actions button {
-            margin-right: 5px;
+        /* Услуги */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
         }
 
-        label {
-            display: block;
-            margin-top: 10px;
-        }
-
-        .edit-form {
-            margin-top: 20px;
-            background: #2a2a2a;
+        .service-card {
+            background: #220000;
+            border-radius: 12px;
             padding: 15px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+
+        .service-card.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .service-card img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
             border-radius: 10px;
         }
 
-        .preview-container {
-            margin-top: 20px;
-            text-align: center;
+        /* Портфолио */
+        .portfolio-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
         }
 
-        .preview-container img {
-            max-width: 100%;
-            height: auto;
-            border: 1px solid #555;
+        /* Отзывы */
+        .reviews-slider {
+            display: flex;
+            overflow-x: scroll;
+            scroll-snap-type: x mandatory;
+        }
+
+        .review-block {
+            scroll-snap-align: start;
+            min-width: 280px;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-right: 20px;
+            border-left: 5px solid #ff6b6b;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.4s ease;
+        }
+
+        .review-block.loaded {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .review-author {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+
+        .review-button {
+            display: inline-block;
+            margin-top: 10px;
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Модальное окно */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .modal {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 80%;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px; right: 10px;
+            font-size: 24px;
+            color: #ff6b6b;
+            cursor: pointer;
+        }
+
+        .modal img {
+            width: 100%;
             border-radius: 8px;
         }
 
-        .block-list {
-            margin-top: 20px;
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(to right, #330000, #110000);
+            margin-top: 40px;
+            color: #ccc;
         }
 
-        .block-item {
-            background: #333;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-        }
-
-        .block-controls {
-            margin-top: 10px;
-        }
-
-        .block-controls button {
-            margin-right: 10px;
-        }
-
-        .hidden {
-            display: none !important;
+        .overall-rating {
+            text-align: center;
+            font-size: 20px;
+            color: gold;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
-<div class="dashboard">
+<!-- Шапка -->
+<header>
+    <img src="" alt="Логотип" class="logo" id="siteLogo">
+    <div class="studio-name">MOONSTUDIO</div>
+</header>
 
-    <!-- Блок Вотерпреобразовалка -->
-    <h2 class="section-title">ВОТЕРПРЕОБРАЗОВАЛКА</h2>
-    <input type="file" id="waterImageInput" accept="image/*" onchange="previewWatermarked()">
-    <select id="targetBlock" onchange="handleTargetSelect()">
-        <option value="">Выберите блок для загрузки</option>
-        <option value="reviews">Добавить как отзыв</option>
-        <option value="services">Добавить как услугу</option>
-        <option value="portfolio">Добавить как работу</option>
-    </select>
+<!-- Индикатор загрузки -->
+<div class="loading-text" id="loadingText">⏳ Подождите, блоки информации загружаются...</div>
 
-    <div class="preview-container">
-        <p>Предпросмотр:</p>
-        <img id="waterPreview" src="" alt="С водяным знаком" style="display:none;">
+<!-- Портфолио -->
+<section id="portfolio" class="section">
+    <h2 style="text-align:center; color:#ff6b6b;">Наши работы</h2>
+    <div class="portfolio-grid" id="portfolio-container"></div>
+</section>
+
+<!-- Услуги -->
+<section id="services" class="section">
+    <h2 style="text-align:center; color:#ff6b6b;">Наши услуги</h2>
+    <div class="services-grid" id="services-container"></div>
+</section>
+
+<!-- Отзывы -->
+<section id="reviews" class="section">
+    <h2 style="text-align:center; color:#ff6b6b;">Отзывы клиентов</h2>
+    <div class="overall-rating" id="overallRating">Общий рейтинг: ⭐ 0.0</div>
+    <div class="reviews-slider" id="reviews-container"></div>
+</section>
+
+<!-- Контакты -->
+<section id="contacts" class="section">
+    <h2 style="text-align:center; color:#ff6b6b;">Контакты</h2>
+    <p id="contact-info" style="text-align:center;"></p>
+</section>
+
+<!-- Модальное окно -->
+<div id="workModal" class="modal-overlay">
+    <div class="modal">
+        <span class="modal-close" onclick="closeWorkModal()">❌</span>
+        <img id="modalImage" src="" alt="Пример работы">
     </div>
-
-    <!-- Форма для Отзывов -->
-    <div id="form-review" class="edit-form hidden">
-        <h3>Форма: Добавить отзыв</h3>
-        <textarea id="reviewText_WM" placeholder="Текст отзыва"></textarea>
-        <input type="text" id="reviewAuthor_WM" placeholder="Имя автора">
-        <input type="number" id="reviewRating_WM" min="1" max="5" step="0.1" placeholder="Рейтинг (1-5)">
-        <button onclick="saveToReview()">Сохранить в отзывы</button>
-    </div>
-
-    <!-- Форма для Услуг -->
-    <div id="form-service" class="edit-form hidden">
-        <h3>Форма: Добавить услугу</h3>
-        <input type="text" id="serviceName_WM" placeholder="Название услуги">
-        <textarea id="serviceDescription_WM" placeholder="Описание услуги"></textarea>
-        <button onclick="saveToService()">Сохранить в услуги</button>
-    </div>
-
-    <!-- Форма для Портфолио -->
-    <div id="form-portfolio" class="edit-form hidden">
-        <h3>Форма: Добавить работу</h3>
-        <button onclick="saveToPortfolio()">Сохранить в портфолио</button>
-    </div><hr>
-
-    <!-- Отзывы -->
-    <h2 class="section-title">Отзывы</h2>
-    <textarea id="reviewText" placeholder="Текст отзыва"></textarea>
-    <input type="text" id="reviewAuthor" placeholder="Имя автора">
-    <input type="number" id="reviewRating" min="1" max="5" step="0.1" placeholder="Рейтинг">
-    <input type="file" id="reviewImageFile" accept="image/*">
-    <button onclick="addReview()">Добавить</button>
-    <div id="reviewsList" class="block-list"></div><hr>
-
-    <!-- Услуги -->
-    <h2 class="section-title">Услуги</h2>
-    <input type="text" id="serviceName" placeholder="Название услуги">
-    <textarea id="serviceDescription" placeholder="Описание услуги"></textarea>
-    <input type="file" id="serviceImageFile" accept="image/*">
-    <button onclick="addService()">Добавить</button>
-    <div id="servicesList" class="block-list"></div><hr>
-
-    <!-- Портфолио -->
-    <h2 class="section-title">Портфолио</h2>
-    <input type="file" id="portfolioImageFile" accept="image/*">
-    <button onclick="addPortfolio()">Добавить работу</button>
-    <div id="portfolioList" class="block-list"></div><hr>
-
-    <!-- Контакты -->
-    <h2 class="section-title">Контакты</h2>
-    <textarea id="contactInfo">Telegram: @yourusername<br>Email: example@example.com</textarea>
-    <button onclick="saveContacts()">Сохранить контакты</button>
 </div>
+
+<!-- Футер -->
+<footer>
+    &copy; 2025 MOONSTUDIO — Все права защищены.
+</footer>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script>
-    // 🔑 Твой Firebase config
+    // 🔑 ТВОЙ API CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyCDaptwQubkzkAkHSSi_GpMhRHFasWFXvw",
         authDomain: "moonstudio-db.firebaseapp.com",
@@ -191,6 +238,7 @@
         appId: "1:154686593917:web:c777e00ae5096e048eca14"
     };
 
+    // Инициализация Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -198,347 +246,102 @@
         return db.ref(path);
     }
 
-    let currentWatermarkedData = null;
-
-    // --- Чтение файла ---
-    function readFileAsDataURL(file, callback) {
-        const reader = new FileReader();
-        reader.onload = e => callback(e.target.result);
-        reader.readAsDataURL(file);
-    }
-
-    // --- Наложение хаотичного водяного знака ---
-    async function applyWatermark(imageUrl, callback) {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.src = imageUrl;
-
-        img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-
-            // Текст SigmaGamblers хаотично
-            ctx.font = "bold 30px Montserrat";
-            ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
-            ctx.textAlign = "center";
-
-            for (let i = 0; i < 20; i++) {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                ctx.fillText("SigmaGamblers", x, y);
-            }
-
-            // Экспорт
-            canvas.toBlob(blob => {
-                const reader = new FileReader();
-                reader.onload = () => callback(reader.result); // base64
-                reader.readAsDataURL(blob);
-            }, "image/png");
-        };
-    }
-
-    // --- Предпросмотр водяного знака ---
-    function previewWatermarked() {
-        const fileInput = document.getElementById("waterImageInput");
-        if (!fileInput.files[0]) return alert("Выберите изображение");
-
-        readFileAsDataURL(fileInput.files[0], imageData => {
-            applyWatermark(imageData, watermarkedData => {
-                document.getElementById("waterPreview").src = watermarkedData;
-                document.getElementById("waterPreview").style.display = "block";
-                currentWatermarkedData = watermarkedData;
-            });
-        });
-    }
-
-    // --- Выбор целевого блока ---
-    function handleTargetSelect() {
-        const block = document.getElementById("targetBlock").value;
-
-        document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
-
-        if (block === "reviews") {
-            document.getElementById("form-review").classList.remove("hidden");
-        } else if (block === "services") {
-            document.getElementById("form-service").classList.remove("hidden");
-        } else if (block === "portfolio") {
-            document.getElementById("form-portfolio").classList.remove("hidden");
-        }
-    }
-
-    // --- Сохранение в отзывы с водяным знаком ---
-    function saveToReview() {
-        const text = document.getElementById("reviewText_WM").value.trim();
-        const author = document.getElementById("reviewAuthor_WM").value.trim();
-        const rating = parseFloat(document.getElementById("reviewRating_WM").value.trim());
-
-        if (!text || !author || !rating || !currentWatermarkedData) {
-            alert("Заполните все поля и выберите фото");
-            return;
-        }
-
-        const id = Date.now();
-        refPath(`reviews/${id}`).set({ text, author, rating, image: currentWatermarkedData }, err => {
-            if (err) {
-                alert("Ошибка при добавлении отзыва");
+    // --- Загрузка данных ---
+    function loadData(path, callback) {
+        refPath(path).on('value', snapshot => {
+            if (snapshot.exists()) {
+                callback(snapshot.val());
             } else {
-                alert("Отзыв добавлен с водяным знаком");
-                loadReviews();
-                clearFields(["reviewText_WM", "reviewAuthor_WM", "reviewRating_WM"]);
-                document.getElementById("targetBlock").value = "";
-                document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
-                currentWatermarkedData = null;
+                callback(null);
             }
         });
     }
 
-    // --- Сохранение в услуги с водяным знаком ---
-    function saveToService() {
-        const title = document.getElementById("serviceName_WM").value.trim();
-        const description = document.getElementById("serviceDescription_WM").value.trim();
-
-        if (!title || !description || !currentWatermarkedData) {
-            alert("Заполните все поля и загрузите изображение");
-            return;
-        }
-
-        const id = Date.now();
-        refPath(`services/${id}`).set({ title, description, image: currentWatermarkedData }, err => {
-            if (err) {
-                alert("Ошибка при добавлении услуги");
-            } else {
-                alert("Услуга добавлена с водяным знаком");
-                loadServices();
-                clearFields(["serviceName_WM", "serviceDescription_WM"]);
-                document.getElementById("targetBlock").value = "";
-                document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
-                currentWatermarkedData = null;
-            }
+    // --- Логотип ---
+    function loadLogo() {
+        loadData("logo", data => {
+            document.getElementById("siteLogo").src = data || "https://via.placeholder.com/60x60?text=Logo";
         });
     }
 
-    // --- Сохранение в портфолио с водяным знаком ---
-    function saveToPortfolio() {
-        if (!currentWatermarkedData) {
-            alert("Сначала загрузите и обработайте изображение");
-            return;
-        }
+    // --- Портфолио ---
+    function loadPortfolio() {
+        loadData("portfolio", data => {
+            const container = document.getElementById("portfolio-container");
+            container.innerHTML = "";
+            if (!data) return;
 
-        const id = Date.now();
-        refPath(`portfolio/${id}`).set({ image: currentWatermarkedData }, err => {
-            if (err) {
-                alert("Ошибка при добавлении работы");
-            } else {
-                alert("Работа добавлена с водяным знаком");
-                loadPortfolio();
-                document.getElementById("targetBlock").value = "";
-                document.getElementById("form-portfolio").classList.add("hidden");
-                currentWatermarkedData = null;
-            }
-        });
-    }
-
-    // --- Отзывы ---
-    function addReview() {
-        const text = document.getElementById("reviewText").value.trim();
-        const author = document.getElementById("reviewAuthor").value.trim();
-        const rating = parseFloat(document.getElementById("reviewRating").value.trim());
-        const fileInput = document.getElementById("reviewImageFile");
-        const file = fileInput.files[0];
-
-        if (!text || !author || !rating || !file) {
-            alert("Заполните все поля и выберите фото");
-            return;
-        }
-
-        readFileAsDataURL(file, imageData => {
-            const id = Date.now();
-            refPath(`reviews/${id}`).set({ text, author, rating, image: imageData }, err => {
-                if (err) {
-                    alert("Ошибка при добавлении отзыва");
-                } else {
-                    alert("Отзыв добавлен");
-                    loadReviews();
-                    clearFields(["reviewText", "reviewAuthor", "reviewRating"]);
-                    fileInput.value = "";
-                }
-            });
-        });
-    }
-
-    function deleteReview(id) {
-        refPath(`reviews/${id}`).remove(() => loadReviews());
-    }
-
-    function loadReviews() {
-        refPath("reviews").on("value", snapshot => {
-            const container = document.getElementById("reviewsList");
-            container.innerHTML = "<h3>Отзывы</h3>";
-
-            if (!snapshot.exists()) return;
-
-            snapshot.forEach(child => {
-                const r = child.val();
-                const stars = renderStars(r.rating);
+            Object.values(data).forEach(item => {
                 const div = document.createElement("div");
-                div.className = "block-item";
-                div.innerHTML = `
-                    "${r.text}" — ${r.author}<br>
-                    <small>Рейтинг: ⭐ ${r.rating}</small><br>
-                    <img src="${r.image}" width="100"><br>
-                    <div class="block-controls">
-                        <button onclick="convertExisting('${child.key}', 'reviews')">Преобразовать в ВМ</button>
-                        <button onclick="deleteReview('${child.key}')">Удалить</button>
-                    </div>`;
+                div.className = "portfolio-item";
+                div.innerHTML = `<img src="${item.image}" alt="">`;
                 container.appendChild(div);
+
+                setTimeout(() => {
+                    div.classList.add("loaded");
+                }, 100);
             });
         });
     }
 
     // --- Услуги ---
-    function addService() {
-        const title = document.getElementById("serviceName").value.trim();
-        const description = document.getElementById("serviceDescription").value.trim();
-        const fileInput = document.getElementById("serviceImageFile");
-        const file = fileInput.files[0];
-
-        if (!title || !description || !file) {
-            alert("Заполните все поля и выберите изображение");
-            return;
-        }
-
-        readFileAsDataURL(file, imageData => {
-            const id = Date.now();
-            refPath(`services/${id}`).set({ title, description, image: imageData }, err => {
-                if (err) {
-                    alert("Ошибка при добавлении услуги");
-                } else {
-                    alert("Услуга добавлена");
-                    loadServices();
-                    clearFields(["serviceName", "serviceDescription"]);
-                    fileInput.value = "";
-                }
-            });
-        });
-    }
-
-    function deleteService(id) {
-        refPath(`services/${id}`).remove(() => loadServices());
-    }
-
     function loadServices() {
-        refPath("services").on("value", snapshot => {
-            const container = document.getElementById("servicesList");
-            container.innerHTML = "<h3>Услуги</h3>";
+        loadData("services", data => {
+            const container = document.getElementById("services-container");
+            container.innerHTML = "";
+            if (!data) return;
 
-            if (!snapshot.exists()) return;
-
-            snapshot.forEach(child => {
-                const s = child.val();
+            Object.values(data).forEach(s => {
                 const div = document.createElement("div");
-                div.className = "block-item";
+                div.className = "service-card";
                 div.innerHTML = `
-                    <strong>${s.title}</strong><br>${s.description}<br>
-                    <img src="${s.image}" width="100"><br>
-                    <div class="block-controls">
-                        <button onclick="convertExisting('${child.key}', 'services')">Преобразовать в ВМ</button>
-                        <button onclick="deleteService('${child.key}')">Удалить</button>
-                    </div>`;
+                    <img src="${s.image}" alt="">
+                    <h3>${s.title}</h3>
+                    <p>${s.description}</p>
+                `;
                 container.appendChild(div);
+
+                setTimeout(() => {
+                    div.classList.add("loaded");
+                }, 100);
             });
         });
     }
 
-    // --- Портфолио ---
-    function addPortfolio() {
-        const fileInput = document.getElementById("portfolioImageFile");
-        const file = fileInput.files[0];
-        if (!file) return alert("Выберите изображение");
+    // --- Отзывы ---
+    function loadReviews() {
+        loadData("reviews", data => {
+            const container = document.getElementById("reviews-container");
+            container.innerHTML = "";
+            if (!data) return;
 
-        readFileAsDataURL(file, imageData => {
-            const id = Date.now();
-            refPath(`portfolio/${id}`).set({ image: imageData }, err => {
-                if (err) {
-                    alert("Ошибка при добавлении работы");
-                } else {
-                    alert("Работа добавлена");
-                    loadPortfolio();
-                    fileInput.value = "";
-                }
-            });
-        });
-    }
+            let totalRating = 0;
+            let count = 0;
 
-    function deletePortfolio(id) {
-        refPath(`portfolio/${id}`).remove(() => loadPortfolio());
-    }
+            Object.values(data).forEach(r => {
+                const stars = renderStars(r.rating);
+                totalRating += r.rating;
+                count++;
 
-    function loadPortfolio() {
-        refPath("portfolio").on("value", snapshot => {
-            const container = document.getElementById("portfolioList");
-            container.innerHTML = "<h3>Портфолио</h3>";
-
-            if (!snapshot.exists()) return;
-
-            snapshot.forEach(child => {
-                const p = child.val();
                 const div = document.createElement("div");
-                div.className = "block-item";
-                div.innerHTML = `<img src="${p.image}" width="100"><br>
-                    <div class="block-controls">
-                        <button onclick="convertExisting('${child.key}', 'portfolio')">Преобразовать в ВМ</button>
-                        <button onclick="deletePortfolio('${child.key}')">Удалить</button>
-                    </div>`;
+                div.className = "review-block";
+                div.innerHTML = `
+                    <p>"${r.text}"</p>
+                    <div class="review-author">— ${r.author}</div>
+                    <div class="review-rating">${stars}</div>
+                    <button class="review-button" onclick="openWorkModal('${r.image}')">ПОСМОТРЕТЬ РАБОТУ</button>
+                `;
+
                 container.appendChild(div);
+
+                setTimeout(() => {
+                    div.classList.add("loaded");
+                }, 100);
             });
+
+            const avgRating = count ? (totalRating / count).toFixed(1) : 0;
+            document.getElementById("overallRating").innerHTML = `Общий рейтинг: ⭐ ${avgRating}`;
         });
-    }
-
-    // --- Применение водяного знака к существующему изображению ---
-    function convertExisting(key, type) {
-        refPath(`${type}/${key}`).once("value", snap => {
-            const val = snap.val();
-            if (!val.image) {
-                alert("Элемент не содержит изображения");
-                return;
-            }
-
-            applyWatermark(val.image, data => {
-                refPath(`${type}/${key}`).update({
-                    image: data
-                }, err => {
-                    if (err) {
-                        alert("Ошибка при преобразовании");
-                    } else {
-                        alert("Фото обновлено с водяным знаком");
-                        loadPortfolio();
-                        loadServices();
-                        loadReviews();
-                    }
-                });
-            });
-        });
-    }
-
-    // --- Контакты ---
-    function saveContacts() {
-        const info = document.getElementById("contactInfo").value;
-        refPath("contacts").set(info, err => {
-            if (err) {
-                alert("Ошибка сохранения контактов");
-            } else {
-                alert("Контакты сохранены");
-            }
-        });
-    }
-
-    // --- Вспомогательные функции ---
-    function clearFields(ids) {
-        ids.forEach(id => document.getElementById(id).value = "");
     }
 
     function renderStars(rating) {
@@ -559,14 +362,63 @@
         return `${starsHTML} (${rating})`;
     }
 
-    window.onload = () => {
-        loadReviews();
-        loadServices();
-        loadPortfolio();
-
-        refPath("contacts").once("value", snap => {
-            document.getElementById("contactInfo").value = snap.val() || "Telegram: @yourusername<br>Email: example@example.com";
+    // --- Контакты ---
+    function loadContacts() {
+        loadData("contacts", data => {
+            document.getElementById("contact-info").innerHTML = data || "Telegram: @yourusername<br>Email: example@example.com";
         });
+    }
+
+    // --- Модальное окно ---
+    function openWorkModal(imageUrl) {
+        document.getElementById("modalImage").src = imageUrl;
+        document.getElementById("workModal").style.display = "flex";
+    }
+
+    function closeWorkModal() {
+        document.getElementById("workModal").style.display = "none";
+        document.getElementById("modalImage").src = "";
+    }
+
+    // --- Индикатор загрузки ---
+    function showLoading() {
+        document.getElementById("loadingText").style.display = "block";
+    }
+
+    function hideLoading() {
+        document.getElementById("loadingText").style.display = "none";
+    }
+
+    function initLoad() {
+        showLoading();
+
+        let loadedCount = 0;
+        const totalSections = 4;
+
+        function checkLoaded() {
+            loadedCount++;
+            if (loadedCount === totalSections) {
+                setTimeout(hideLoading, 500);
+            }
+        }
+
+        loadLogo();
+        checkLoaded();
+
+        loadPortfolio();
+        checkLoaded();
+
+        loadServices();
+        checkLoaded();
+
+        loadReviews();
+        checkLoaded();
+
+        loadContacts();
+    }
+
+    window.onload = () => {
+        initLoad();
     };
 </script>
 
