@@ -15,24 +15,55 @@
         }
 
         header {
+            position: sticky;
+            top: 0;
+            z-index: 999;
             background: linear-gradient(to right, #1a0000, #0d0000);
-            padding: 20px 30px;
+            padding: 15px 20px;
             display: flex;
             align-items: center;
-            gap: 20px;
-            border-radius: 12px;
-            margin: 20px;
+            justify-content: space-between;
+            flex-wrap: wrap;
         }
 
         .logo {
-            width: 60px;
+            width: 50px;
             height: auto;
             border-radius: 5px;
         }
 
         .studio-name {
-            font-size: 24px;
+            font-size: 22px;
             color: #ff6b6b;
+            margin-left: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .nav-button {
+            background: #333;
+            color: #fff;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .scroll-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #ff6b6b;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1000;
         }
 
         .section {
@@ -51,12 +82,18 @@
             text-align: center;
             color: #ccc;
             font-size: 16px;
-            margin-top: 20px;
+            margin-top: 40px;
         }
 
-        /* Показываем/скрываем через класс hidden */
-        .hidden {
-            display: none !important;
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+
+        .fade-in.loaded {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         /* Отзывы */
@@ -64,6 +101,7 @@
             display: flex;
             overflow-x: scroll;
             scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
         }
 
         .review-block {
@@ -87,10 +125,23 @@
             margin-top: 10px;
             background: #ff6b6b;
             color: white;
-            padding: 8px 16px;
+            padding: 8px 12px;
             border-radius: 6px;
             font-size: 14px;
             cursor: pointer;
+        }
+
+        .review-button img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .overall-rating {
+            text-align: center;
+            font-size: 20px;
+            color: gold;
+            margin-bottom: 20px;
         }
 
         /* Услуги */
@@ -120,44 +171,55 @@
             gap: 20px;
         }
 
+        .portfolio-item {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
         .portfolio-item img {
             width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 12px;
+            height: auto;
+            border-radius: 10px;
         }
 
-        /* Модальное окно */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
+        /* Сотрудники */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
         }
 
-        .modal {
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 12px;
-            max-width: 80%;
-            position: relative;
+        .team-member {
+            background: #222;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
         }
 
-        .modal-close {
-            position: absolute;
-            top: 10px; right: 10px;
-            font-size: 24px;
-            color: #ff6b6b;
-            cursor: pointer;
-        }
-
-        .modal img {
+        .team-member img {
             width: 100%;
+            height: auto;
             border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .team-position {
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .team-contact {
+            margin-top: 10px;
+        }
+
+        .team-contact a {
+            display: inline-block;
+            background: #00aced;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
         }
 
         footer {
@@ -168,11 +230,8 @@
             color: #ccc;
         }
 
-        .overall-rating {
-            text-align: center;
-            font-size: 20px;
-            color: gold;
-            margin-bottom: 20px;
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -180,57 +239,81 @@
 
 <!-- Шапка -->
 <header>
-    <img src="" alt="Логотип" class="logo" id="siteLogo">
-    <div class="studio-name">SIGMAGAMBLERS</div>
+    <div style="display: flex; align-items: center;">
+        <img src="" alt="Логотип" class="logo" id="siteLogo">
+        <div class="studio-name">SIGMAGABLERS</div>
+    </div>
+    <div class="nav-buttons">
+        <button class="nav-button" onclick="scrollToSection('portfolio')">Портфолио</button>
+        <button class="nav-button" onclick="scrollToSection('services')">Услуги</button>
+        <button class="nav-button" onclick="scrollToSection('reviews')">Отзывы</button>
+        <button class="nav-button" onclick="scrollToSection('team')">Сотрудники</button>
+        <button class="nav-button" onclick="scrollToSection('contacts')">Контакты</button>
+    </div>
+    <button class="scroll-to-top" onclick="scrollToTop()">↑</button>
 </header>
 
-<!-- Герой -->
-<section class="hero"></section>
-
 <!-- Портфолио -->
-<section class="section">
+<section class="section" id="portfolio">
     <h2 class="section-title">Наши работы</h2>
-    <div class="loading-text" id="portfolioLoading">Элементы загружаются, ЭТО ДОЛГО :) </div>
+    <div class="loading-text" id="portfolioLoading">Элементы загружаются, это может занять некоторое время.</div>
     <div class="portfolio-grid" id="portfolio-container"></div>
 </section>
 
 <!-- Услуги -->
-<section class="section">
+<section class="section" id="services">
     <h2 class="section-title">Наши услуги</h2>
-    <div class="loading-text" id="servicesLoading">Элементы загружаются, ЭТО ДОЛГО :) </div>
+    <div class="loading-text" id="servicesLoading">Элементы загружаются, это может занять некоторое время.</div>
     <div class="services-grid" id="services-container"></div>
 </section>
 
 <!-- Отзывы -->
-<section class="section">
+<section class="section" id="reviews">
     <h2 class="section-title">Отзывы клиентов</h2>
     <div class="overall-rating" id="overallRating">Общий рейтинг: ⭐ 0.0</div>
-    <div class="loading-text" id="reviewsLoading">Элементы загружаются, ЭТО ДОЛГО :) </div>
+    <div class="loading-text" id="reviewsLoading">Элементы загружаются, это может занять некоторое время.</div>
     <div class="reviews-slider" id="reviews-container"></div>
 </section>
 
+<!-- Сотрудники -->
+<section class="section" id="team">
+    <h2 class="section-title">Наша команда</h2>
+    <div class="loading-text" id="teamLoading">Загрузка...</div>
+    <div class="team-grid" id="team-container"></div>
+</section>
+
 <!-- Контакты -->
-<section class="section">
+<section class="section" id="contacts">
     <h2 class="section-title">Контакты</h2>
     <p id="contact-info" style="text-align:center;"></p>
 </section>
 
 <!-- Модальное окно -->
-<div id="workModal" class="modal-overlay">
-    <div class="modal">
-        <span class="modal-close" onclick="closeWorkModal()">❌</span>
-        <img id="modalImage" src="" alt="Пример работы">
+<div id="workModal" style="display:none;">
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 999; display: flex; justify-content: center; align-items: center;">
+        <img id="modalImage" src="" alt="Пример работы" style="max-width:90%; border-radius:10px;">
+        <span style="position: absolute; top: 20px; right: 20px; font-size:24px; color:#ff6b6b; cursor:pointer;" onclick="closeWorkModal()">❌</span>
     </div>
 </div>
 
 <!-- Футер -->
 <footer>
-    &copy; 2025 SIGMAGAMBLERS — С любовью к дизайну!
+    &copy; 2025 SIGMAGABLERS — С любовью к дизайну!
 </footer>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
+    // --- Telegram WebApp ---
+    const tg = window.Telegram?.WebApp || null;
+
+    if (tg) {
+        tg.ready();
+        tg.expand();
+        document.body.style.backgroundColor = "#111";
+    }
+
     // 🔑 Firebase config
     const firebaseConfig = {
         apiKey: "AIzaSyCDaptwQubkzkAkHSSi_GpMhRHFasWFXvw",
@@ -247,105 +330,162 @@
         return db.ref(path);
     }
 
-    // --- Загрузка данных ---
-    function loadData(path, callback) {
-        refPath(path).on('value', snapshot => {
-            if (snapshot.exists()) {
-                callback(snapshot.val());
-            } else {
-                callback(null);
-            }
-        });
+    // --- Прокрутка по якорям ---
+    function scrollToSection(id) {
+        document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // --- Логотип ---
     function loadLogo() {
-        loadData("logo", data => {
-            document.getElementById("siteLogo").src = data || "https://via.placeholder.com/60x60?text=SG";
+        refPath("logo").on("value", snap => {
+            document.getElementById("siteLogo").src = snap.val() || "";
         });
     }
 
     // --- Портфолио ---
     function loadPortfolio() {
-        loadData("portfolio", data => {
+        refPath("portfolio").on("value", snapshot => {
             const container = document.getElementById("portfolio-container");
+            const loader = document.getElementById("portfolioLoading");
+
+            loader.classList.remove("hidden");
             container.innerHTML = "";
-            document.getElementById("portfolioLoading").classList.add("hidden");
 
-            if (!data) return;
+            if (!snapshot.exists()) {
+                loader.textContent = "Нет работ.";
+                return;
+            }
 
-            Object.values(data).forEach(item => {
+            snapshot.forEach(child => {
+                const item = child.val();
                 const div = document.createElement("div");
-                div.className = "portfolio-item";
+                div.className = "portfolio-item fade-in";
                 div.innerHTML = `<img src="${item.image}" alt="">`;
                 container.appendChild(div);
+
+                setTimeout(() => div.classList.add("loaded"), 100);
             });
+
+            loader.classList.add("hidden");
         });
     }
 
     // --- Услуги ---
     function loadServices() {
-        loadData("services", data => {
+        refPath("services").on("value", snapshot => {
             const container = document.getElementById("services-container");
+            const loader = document.getElementById("servicesLoading");
+
+            loader.classList.remove("hidden");
             container.innerHTML = "";
-            document.getElementById("servicesLoading").classList.add("hidden");
 
-            if (!data) return;
+            if (!snapshot.exists()) {
+                loader.textContent = "Нет услуг.";
+                return;
+            }
 
-            Object.values(data).forEach(s => {
+            snapshot.forEach(child => {
+                const s = child.val();
                 const div = document.createElement("div");
-                div.className = "service-card";
+                div.className = "service-card fade-in";
                 div.innerHTML = `
                     <img src="${s.image}" alt="">
                     <h3>${s.title}</h3>
-                    <p>${s.description}</p>
-                `;
+                    <p>${s.description}</p>`;
                 container.appendChild(div);
+
+                setTimeout(() => div.classList.add("loaded"), 100);
             });
+
+            loader.classList.add("hidden");
         });
     }
 
     // --- Отзывы ---
     function loadReviews() {
-        loadData("reviews", data => {
+        refPath("reviews").on("value", snapshot => {
             const container = document.getElementById("reviews-container");
-            container.innerHTML = "";
-            document.getElementById("reviewsLoading").classList.add("hidden");
+            const loader = document.getElementById("reviewsLoading");
 
-            if (!data) return;
+            loader.classList.remove("hidden");
+            container.innerHTML = "";
 
             let totalRating = 0;
             let count = 0;
 
-            Object.values(data).forEach(r => {
+            if (!snapshot.exists()) {
+                loader.textContent = "Нет отзывов.";
+                return;
+            }
+
+            snapshot.forEach(child => {
+                const r = child.val();
                 totalRating += r.rating;
                 count++;
 
                 const div = document.createElement("div");
-                div.className = "review-block";
+                div.className = "review-block fade-in";
                 div.innerHTML = `
                     <p>"${r.text}"</p>
                     <div class="review-author">— ${r.author}</div>
                     <div class="review-rating">${renderStars(r.rating)}</div>
-                    <button class="review-button" onclick="openWorkModal('${r.image}')">ПОСМОТРЕТЬ РАБОТУ</button>
-                `;
+                    <button class="review-button" onclick="openWorkModal('${r.image}')">
+                        Увидеть работу<br>
+                        <img src="${r.image}" style="margin-top:10px;">
+                    </button>`;
                 container.appendChild(div);
+
+                setTimeout(() => div.classList.add("loaded"), 100);
             });
 
             const avgRating = count ? (totalRating / count).toFixed(1) : 0;
             document.getElementById("overallRating").innerHTML = `Общий рейтинг: ⭐ ${avgRating}`;
+            loader.classList.add("hidden");
         });
     }
 
+    // --- Сотрудники ---
+    function loadTeam() {
+        refPath("team").on("value", snapshot => {
+            const container = document.getElementById("team-container");
+            const loader = document.getElementById("teamLoading");
+
+            loader.classList.remove("hidden");
+            container.innerHTML = "";
+
+            if (!snapshot.exists()) {
+                loader.textContent = "Нет сотрудников.";
+                return;
+            }
+
+            snapshot.forEach(child => {
+                const t = child.val();
+                const div = document.createElement("div");
+                div.className = "team-member";
+                div.innerHTML = `
+                    <img src="${t.avatar}">
+                    <h3>${t.name}</h3>
+                    <div class="team-position">${t.position}</div>
+                    ${t.telegram ? `<div class="team-contact"><a href="https://t.me/${t.telegram}" target="_blank">Telegram</a></div>` : ''}
+                `;
+                container.appendChild(div);
+            });
+
+            loader.classList.add("hidden");
+        });
+    }
+
+    // --- Звёзды рейтинга ---
     function renderStars(rating) {
         const fullStars = Math.floor(rating);
-        const hasHalf = rating % 1 >= 0.5;
         let starsHTML = "";
 
         for (let i = 0; i < 5; i++) {
             if (i < fullStars) {
-                starsHTML += "⭐";
-            } else if (hasHalf && i === fullStars) {
                 starsHTML += "⭐";
             } else {
                 starsHTML += "☆";
@@ -355,17 +495,10 @@
         return `${starsHTML} (${rating})`;
     }
 
-    // --- Контакты ---
-    function loadContacts() {
-        loadData("contacts", data => {
-            document.getElementById("contact-info").innerHTML = data || "Telegram: @yourusername<br>Email: example@example.com";
-        });
-    }
-
     // --- Модальное окно ---
     function openWorkModal(imageUrl) {
         document.getElementById("modalImage").src = imageUrl;
-        document.getElementById("workModal").style.display = "flex";
+        document.getElementById("workModal").style.display = "block";
     }
 
     function closeWorkModal() {
@@ -373,14 +506,23 @@
         document.getElementById("modalImage").src = "";
     }
 
-    // --- Инициализация ---
+    // --- Контакты ---
+    function loadContacts() {
+        refPath("contacts").once("value", snap => {
+            document.getElementById("contact-info").innerHTML = snap.val() || "Telegram: @yourusername<br>Email: example@example.com";
+        });
+    }
+
+    // --- Автозагрузка ---
     window.onload = () => {
         loadLogo();
         loadPortfolio();
         loadServices();
         loadReviews();
+        loadTeam();
         loadContacts();
     };
 </script>
+
 </body>
 </html>
