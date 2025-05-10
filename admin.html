@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>Админка SigmaGamblers</title>
+    <title>Админка | Отзывы</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
     <style>
@@ -12,14 +12,14 @@
             background: #111;
             color: #fff;
             line-height: 1.6;
-            padding: 40px;
+            padding: 20px;
         }
 
         .dashboard {
             max-width: 500px;
             margin: auto;
             background: #222;
-            padding: 30px;
+            padding: 20px;
             border-radius: 10px;
         }
 
@@ -39,22 +39,25 @@
 
         h2.section-title {
             text-align: center;
-            margin-top: 30px;
+            margin-bottom: 20px;
             color: #ff6b6b;
         }
 
-        .edit-form {
-            margin-top: 20px;
-            background: #2a2a2a;
-            padding: 15px;
-            border-radius: 10px;
-        }
-
-        .block-item {
+        .review-block {
             background: #333;
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 5px;
+        }
+
+        .actions {
+            margin-top: 10px;
+        }
+
+        .actions button {
+            margin-right: 10px;
+            font-size: 14px;
+            padding: 6px 10px;
         }
 
         .hidden {
@@ -67,73 +70,30 @@
 <div class="dashboard">
 
     <!-- Настройки водяного знака -->
-    <h2 class="section-title">Настройки вотермаркера</h2>
-    <label>Прозрачность: <span id="opacityValue">0.3</span></label>
-    <input type="range" min="0.1" max="0.5" step="0.05" value="0.3" id="wmOpacity" oninput="document.getElementById('opacityValue').innerText = this.value;">
-    
-    <label>Интенсивность: <span id="intensityValue">20</span></label>
-    <input type="range" min="5" max="50" step="5" value="20" id="wmIntensity" oninput="document.getElementById('intensityValue').innerText = this.value;">
-
-    <hr>
-
-    <!-- Блок Вотерпреобразовалка -->
     <h2 class="section-title">ВОТЕРПРЕОБРАЗОВАЛКА</h2>
     <input type="file" id="waterImageInput" accept="image/*" onchange="previewWatermarked()">
     <select id="targetBlock" onchange="handleTargetSelect()">
-        <option value="">Выберите целевой блок</option>
-        <option value="reviews">Добавить в отзывы</option>
-        <option value="services">Добавить в услуги</option>
-        <option value="portfolio">Добавить в портфолио</option>
-    </select><br>
+        <option value="">Выберите блок для загрузки</option>
+        <option value="reviews">Добавить как отзыв</option>
+    </select>
 
     <div style="text-align:center;">
         <p>Предпросмотр:</p>
         <img id="waterPreview" src="" alt="С водяным знаком" style="display:none; max-width:100%;">
-    </div>
-
-    <!-- Формы для блоков с водяным знаком -->
-    <div id="form-review" class="edit-form hidden">
-        <textarea id="reviewText_WM" placeholder="Текст отзыва"></textarea>
-        <input type="text" id="reviewAuthor_WM" placeholder="Автор">
-        <input type="number" id="reviewRating_WM" min="1" max="5" step="0.1" placeholder="Рейтинг">
-        <button onclick="saveToReview()">Сохранить в отзывы</button>
-    </div>
-
-    <div id="form-service" class="edit-form hidden">
-        <input type="text" id="serviceName_WM" placeholder="Название услуги">
-        <textarea id="serviceDescription_WM" placeholder="Описание услуги"></textarea>
-        <button onclick="saveToService()">Сохранить в услуги</button>
-    </div>
-
-    <div id="form-portfolio" class="edit-form hidden">
-        <button onclick="saveToPortfolio()">Сохранить в портфолио</button>
     </div><hr>
 
-    <!-- Отзывы -->
-    <h2 class="section-title">Отзывы</h2>
-    <div id="reviewsList"></div><hr>
+    <!-- Форма добавления отзыва -->
+    <h2 class="section-title">Добавить отзыв</h2>
+    <textarea id="reviewText_WM" placeholder="Текст отзыва"></textarea>
+    <input type="text" id="reviewAuthor_WM" placeholder="Автор">
+    <input type="number" id="reviewRating_WM" min="1" max="5" step="0.1" placeholder="Рейтинг (1-5)">
+    <input type="file" id="reviewImageFile" accept="image/*">
+    <button onclick="addReview()">Добавить</button><hr>
 
-    <!-- Услуги -->
-    <h2 class="section-title">Услуги</h2>
-    <div id="servicesList"></div><hr>
+    <!-- Список отзывов -->
+    <h2 class="section-title">Существующие отзывы</h2>
+    <div id="reviewsList"></div>
 
-    <!-- Портфолио -->
-    <h2 class="section-title">Портфолио</h2>
-    <div id="portfolioList"></div><hr>
-
-    <!-- Сотрудники (без водяного знака) -->
-    <h2 class="section-title">Сотрудники</h2>
-    <input type="text" id="memberName" placeholder="Имя">
-    <input type="text" id="memberPosition" placeholder="Должность">
-    <input type="text" id="memberTelegram" placeholder="Telegram (без @)">
-    <input type="file" id="memberAvatarFile" accept="image/*">
-    <button onclick="addTeamMember()">Добавить сотрудника</button>
-    <div id="teamList"></div><hr>
-
-    <!-- Контакты -->
-    <h2 class="section-title">Контакты</h2>
-    <textarea id="contactInfo">Telegram: @yourusername<br>Email: example@example.com</textarea>
-    <button onclick="saveContacts()">Сохранить контакты</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -178,24 +138,19 @@
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
 
-            // Настройки
-            const opacity = document.getElementById("wmOpacity").value;
-            const intensity = document.getElementById("wmIntensity").value;
-
             ctx.font = "bold 30px Montserrat";
-            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+            ctx.fillStyle = "rgba(255,255,255,0.3)";
             ctx.textAlign = "center";
 
-            for (let i = 0; i < intensity; i++) {
+            for (let i = 0; i < 20; i++) {
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height;
                 ctx.fillText("SigmaGamblers", x, y);
             }
 
-            // Экспорт
             canvas.toBlob(blob => {
                 const reader = new FileReader();
-                reader.onload = () => callback(reader.result);
+                reader.onload = () => callback(reader.result); // base64
                 reader.readAsDataURL(blob);
             }, "image/png");
         };
@@ -204,7 +159,7 @@
     // --- Предпросмотр водяного знака ---
     function previewWatermarked() {
         const fileInput = document.getElementById("waterImageInput");
-        if (!fileInput.files[0]) return alert("Выберите фото");
+        if (!fileInput.files[0]) return alert("Выберите изображение");
 
         readFileAsDataURL(fileInput.files[0], imageData => {
             applyWatermark(imageData, watermarkedData => {
@@ -215,28 +170,23 @@
         });
     }
 
-    // --- Выбор целевого блока ---
+    // --- Выбор блока после обработки ---
     function handleTargetSelect() {
         const block = document.getElementById("targetBlock").value;
-        document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
 
         if (block === "reviews") {
-            document.getElementById("form-review").classList.remove("hidden");
-        } else if (block === "services") {
-            document.getElementById("form-service").classList.remove("hidden");
-        } else if (block === "portfolio") {
-            document.getElementById("form-portfolio").classList.remove("hidden");
+            document.getElementById("reviewText_WM").placeholder = "Введите текст отзыва";
         }
     }
 
-    // --- Сохранение в отзывы ---
+    // --- Сохранение в отзывы с водяным знаком ---
     function saveToReview() {
         const text = document.getElementById("reviewText_WM").value.trim();
         const author = document.getElementById("reviewAuthor_WM").value.trim();
         const rating = parseFloat(document.getElementById("reviewRating_WM").value.trim());
 
         if (!text || !author || !rating || !currentWatermarkedData) {
-            alert("Заполните все поля и выберите фото");
+            alert("Заполните все поля и загрузите фото");
             return;
         }
 
@@ -249,116 +199,67 @@
                 loadReviews();
                 clearFields(["reviewText_WM", "reviewAuthor_WM", "reviewRating_WM"]);
                 document.getElementById("targetBlock").value = "";
-                document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
+                document.getElementById("form-review").classList.add("hidden");
                 currentWatermarkedData = null;
             }
         });
     }
 
-    // --- Сохранение в услуги ---
-    function saveToService() {
-        const title = document.getElementById("serviceName_WM").value.trim();
-        const description = document.getElementById("serviceDescription_WM").value.trim();
-
-        if (!title || !description || !currentWatermarkedData) {
-            alert("Заполните данные и загрузите фото");
-            return;
-        }
-
-        const id = Date.now();
-        refPath(`services/${id}`).set({ title, description, image: currentWatermarkedData }, err => {
-            if (err) {
-                alert("Ошибка при добавлении услуги");
-            } else {
-                alert("Услуга добавлена с водяным знаком");
-                loadServices();
-                clearFields(["serviceName_WM", "serviceDescription_WM"]);
-                document.getElementById("targetBlock").value = "";
-                document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
-                currentWatermarkedData = null;
-            }
-        });
-    }
-
-    // --- Сохранение в портфолио ---
-    function saveToPortfolio() {
-        if (!currentWatermarkedData) {
-            alert("Сначала загрузите и обработайте фото");
-            return;
-        }
-
-        const id = Date.now();
-        refPath(`portfolio/${id}`).set({ image: currentWatermarkedData }, err => {
-            if (err) {
-                alert("Ошибка при добавлении работы");
-            } else {
-                alert("Работа добавлена с водяным знаком");
-                loadPortfolio();
-                document.getElementById("targetBlock").value = "";
-                document.getElementById("form-portfolio").classList.add("hidden");
-                currentWatermarkedData = null;
-            }
-        });
-    }
-
-    // --- Сотрудники (без водяного знака) ---
-    function addTeamMember() {
-        const name = document.getElementById("memberName").value.trim();
-        const position = document.getElementById("memberPosition").value.trim();
-        const telegram = document.getElementById("memberTelegram").value.trim();
-        const fileInput = document.getElementById("memberAvatarFile");
+    // --- Добавление отзыва напрямую ---
+    function addReview() {
+        const text = document.getElementById("reviewText").value.trim();
+        const author = document.getElementById("reviewAuthor_WM").value.trim();
+        const rating = parseFloat(document.getElementById("reviewRating_WM").value.trim());
+        const fileInput = document.getElementById("reviewImageFile");
         const file = fileInput.files[0];
 
-        if (!name || !position || !file) {
-            alert("Заполните имя, должность и аватар");
+        if (!text || !author || !rating || !file) {
+            alert("Заполните все поля и выберите фото");
             return;
         }
 
         readFileAsDataURL(file, imageData => {
             const id = Date.now();
-            refPath(`team/${id}`).set({ name, position, telegram, avatar: imageData }, err => {
+            refPath(`reviews/${id}`).set({ text, author, rating, image: imageData }, err => {
                 if (err) {
-                    alert("Ошибка при добавлении сотрудника");
+                    alert("Ошибка при добавлении отзыва");
                 } else {
-                    alert("Сотрудник добавлен");
-                    loadTeam();
-                    clearFields(["memberName", "memberPosition", "memberTelegram"]);
+                    alert("Отзыв добавлен");
+                    loadReviews();
+                    clearFields(["reviewText", "reviewAuthor_WM", "reviewRating_WM"]);
                     fileInput.value = "";
                 }
             });
         });
     }
 
-    function deleteTeam(id) {
-        refPath(`team/${id}`).remove(() => loadTeam());
-    }
-
-    function editTeam(id) {
-        refPath(`team/${id}`).once("value", snap => {
+    // --- Редактирование отзыва ---
+    function editReview(id) {
+        refPath(`reviews/${id}`).once("value", snap => {
             const data = snap.val();
-            document.getElementById("memberName").value = data.name;
-            document.getElementById("memberPosition").value = data.position;
-            document.getElementById("memberTelegram").value = data.telegram;
+            document.getElementById("reviewText").value = data.text;
+            document.getElementById("reviewAuthor_WM").value = data.author;
+            document.getElementById("reviewRating_WM").value = data.rating;
 
-            document.getElementById("memberAvatarFile").onchange = () => {
-                const file = document.getElementById("memberAvatarFile").files[0];
+            document.getElementById("reviewImageFile").onchange = () => {
+                const file = document.getElementById("reviewImageFile").files[0];
                 if (!file) return;
 
                 readFileAsDataURL(file, imageData => {
-                    refPath(`team/${id}`).update({
-                        name: document.getElementById("memberName").value,
-                        position: document.getElementById("memberPosition").value,
-                        telegram: document.getElementById("memberTelegram").value,
-                        avatar: imageData
+                    refPath(`reviews/${id}`).update({
+                        text: document.getElementById("reviewText").value,
+                        author: document.getElementById("reviewAuthor_WM").value,
+                        rating: parseFloat(document.getElementById("reviewRating_WM").value),
+                        image: imageData
                     }, err => {
                         if (err) {
                             alert("Ошибка при обновлении");
                         } else {
-                            alert("Сотрудник обновлён");
-                            document.getElementById("memberAvatarFile").onchange = null;
-                            loadTeam();
-                            clearFields(["memberName", "memberPosition", "memberTelegram"]);
-                            document.getElementById("memberAvatarFile").value = "";
+                            alert("Отзыв обновлён");
+                            document.getElementById("reviewImageFile").onchange = null;
+                            loadReviews();
+                            clearFields(["reviewText", "reviewAuthor_WM", "reviewRating_WM"]);
+                            document.getElementById("reviewImageFile").value = "";
                         }
                     });
                 });
@@ -366,110 +267,35 @@
         });
     }
 
-    function loadTeam() {
-        refPath("team").on("value", snapshot => {
-            const container = document.getElementById("teamList");
-            container.innerHTML = "<h3>Сотрудники</h3>";
+    // --- Удаление отзыва ---
+    function deleteReview(id) {
+        if (confirm("Вы уверены, что хотите удалить отзыв?")) {
+            refPath(`reviews/${id}`).remove(() => loadReviews());
+        }
+    }
+
+    // --- Загрузка отзывов ---
+    function loadReviews() {
+        refPath("reviews").on("value", snapshot => {
+            const container = document.getElementById("reviewsList");
+            container.innerHTML = "<h3>Отзывы</h3>";
 
             if (!snapshot.exists()) return;
 
             snapshot.forEach(child => {
-                const t = child.val();
+                const r = child.val();
                 const div = document.createElement("div");
-                div.className = "block-item";
+                div.className = "review-block";
                 div.innerHTML = `
-                    <strong>${t.name}</strong><br>${t.position}<br>
-                    <img src="${t.avatar}" width="100"><br>
-                    ${t.telegram ? `<a href="https://t.me/${t.telegram}" target="_blank" style="color:#00aced;">Telegram</a><br>` : ''}
-                    <button onclick="editTeam('${child.key}')">Редактировать</button>
-                    <button onclick="deleteTeam('${child.key}')">Удалить</button>`;
+                    "${r.text}" — ${r.author}<br>
+                    ⭐ ${r.rating}<br>
+                    <img src="${r.image}" width="100%"><br>
+                    <div class="actions">
+                        <button onclick="editReview('${child.key}')">Редактировать</button>
+                        <button onclick="deleteReview('${child.key}')">Удалить</button>
+                    </div>`;
                 container.appendChild(div);
             });
-        });
-    }
-
-    // --- Загрузка данных ---
-    function loadData(path, callback) {
-        refPath(path).on("value", snap => {
-            callback(snap.val() || {});
-        });
-    }
-
-    function loadReviews() {
-        loadData("reviews", data => {
-            const container = document.getElementById("reviewsList");
-            container.innerHTML = "<h3>Отзывы</h3>";
-            Object.entries(data).forEach(([key, r]) => {
-                container.innerHTML += `
-                    <div class="block-item">
-                        "${r.text}" — ${r.author}<br>
-                        ⭐ ${r.rating}<br>
-                        <img src="${r.image}" width="100"><br>
-                        <button onclick="convertExisting('${key}', 'reviews')">Преобразовать в ВМ</button>
-                    </div>`;
-            });
-        });
-    }
-
-    function loadServices() {
-        loadData("services", data => {
-            const container = document.getElementById("servicesList");
-            container.innerHTML = "<h3>Услуги</h3>";
-            Object.entries(data).forEach(([key, s]) => {
-                container.innerHTML += `
-                    <div class="block-item">
-                        <strong>${s.title}</strong><br>${s.description}<br>
-                        <img src="${s.image}" width="100"><br>
-                        <button onclick="convertExisting('${key}', 'services')">Преобразовать в ВМ</button>
-                    </div>`;
-            });
-        });
-    }
-
-    function loadPortfolio() {
-        loadData("portfolio", data => {
-            const container = document.getElementById("portfolioList");
-            container.innerHTML = "<h3>Портфолио</h3>";
-            Object.entries(data).forEach(([key, p]) => {
-                container.innerHTML += `
-                    <div class="block-item">
-                        <img src="${p.image}" width="100"><br>
-                        <button onclick="convertExisting('${key}', 'portfolio')">Преобразовать в ВМ</button>
-                    </div>`;
-            });
-        });
-    }
-
-    // --- Применение водяного знака к существующему элементу ---
-    function convertExisting(key, type) {
-        refPath(`${type}/${key}`).once("value", snap => {
-            const val = snap.val();
-            if (!val.image) return alert("Элемент не содержит изображения");
-
-            applyWatermark(val.image, watermarked => {
-                refPath(`${type}/${key}`).update({ image: watermarked }, err => {
-                    if (err) {
-                        alert("Ошибка при преобразовании");
-                    } else {
-                        alert("Фото обновлено с водяным знаком");
-                        loadPortfolio();
-                        loadServices();
-                        loadReviews();
-                    }
-                });
-            });
-        });
-    }
-
-    // --- Контакты ---
-    function saveContacts() {
-        const info = document.getElementById("contactInfo").value;
-        refPath("contacts").set(info, err => {
-            if (err) {
-                alert("Ошибка сохранения контактов");
-            } else {
-                alert("Контакты сохранены");
-            }
         });
     }
 
@@ -479,23 +305,12 @@
     }
 
     window.onload = () => {
-        document.getElementById("wmOpacity").addEventListener("input", e => {
+        document.getElementById("waterOpacity")?.addEventListener("input", e => {
             document.getElementById("opacityValue").innerText = e.target.value;
         });
 
-        document.getElementById("wmIntensity").addEventListener("input", e => {
-            document.getElementById("intensityValue").innerText = e.target.value;
-        });
-
         loadReviews();
-        loadServices();
-        loadPortfolio();
-        loadTeam();
-
-        refPath("contacts").once("value", snap => {
-            document.getElementById("contactInfo").value = snap.val() || "Telegram: @yourusername<br>Email: example@example.com";
-        });
     };
 </script>
 </body>
-</html>
+    </html>
