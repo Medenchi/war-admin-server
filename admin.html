@@ -2,65 +2,47 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>Админка SigmaGamblers</title>
+    <title>Админка | Отзывы</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: sans-serif;
-            background: #111;
-            color: #fff;
-            line-height: 1.6;
-            padding: 20px;
+            font-family:sans-serif;
+            background:#111;
+            color:#fff;
+            line-height:1.6;
+            padding:20px;
         }
-
         .dashboard {
-            max-width: 500px;
-            margin: auto;
-            background: #222;
-            padding: 20px;
-            border-radius: 10px;
+            max-width:500px;
+            margin:auto;
+            background:#222;
+            padding:20px;
+            border-radius:10px;
         }
-
-        input, textarea, button, select {
-            width: 100%;
-            margin-top: 10px;
-            padding: 10px;
-            font-size: 14px;
+        input, textarea, button {
+            width:100%;
+            margin-top:10px;
+            padding:10px;
+            font-size:14px;
         }
-
         button {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            cursor: pointer;
+            background:#ff6b6b;
+            color:#fff;
+            border:none;
+            cursor:pointer;
         }
-
-        h2.section-title {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #ff6b6b;
-        }
-
         .block-item {
-            background: #333;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
+            background:#333;
+            padding:10px;
+            margin-bottom:10px;
+            border-radius:5px;
         }
-
         .actions {
-            margin-top: 10px;
+            margin-top:10px;
         }
-
-        .actions button {
-            margin-right: 10px;
-            font-size: 14px;
-            padding: 6px 10px;
-        }
-
         .hidden {
-            display: none !important;
+            display:none !important;
         }
     </style>
 </head>
@@ -71,12 +53,10 @@
     <!-- Вотерпреобразовалка -->
     <h2 style="text-align:center;color:#ff6b6b;">ВОТЕРПРЕОБРАЗОВАЛКА</h2>
     <input type="file" id="waterImageInput" accept="image/*" onchange="previewWatermarked()">
-    <select id="targetBlock" onchange="handleTargetSelect()">
+    
+    <select id="targetBlock" onchange="handleTargetSelect()" class="hidden">
         <option value="">Выберите тип</option>
         <option value="reviews">Отзыв</option>
-        <option value="services">Услуга</option>
-        <option value="portfolio">Портфолио</option>
-        <option value="team">Сотрудник</option>
     </select><br>
 
     <div style="text-align:center;">
@@ -84,7 +64,7 @@
         <img id="waterPreview" src="" alt="С водяным знаком" style="display:none;max-width:100%;">
     </div><hr>
 
-    <!-- Формы для добавления -->
+    <!-- Форма добавления отзыва -->
     <div id="form-review" class="hidden">
         <textarea id="reviewText_WM" placeholder="Текст отзыва"></textarea>
         <input type="text" id="reviewAuthor_WM" placeholder="Автор">
@@ -92,35 +72,16 @@
         <button onclick="saveToReview()">Сохранить в отзывы</button>
     </div>
 
-    <div id="form-service" class="hidden">
-        <input type="text" id="serviceName_WM" placeholder="Название услуги">
-        <textarea id="serviceDescription_WM" placeholder="Описание"></textarea>
-        <button onclick="saveToService()">Сохранить в услуги</button>
-    </div>
-
-    <div id="form-portfolio" class="hidden">
-        <button onclick="saveToPortfolio()">Сохранить в портфолио</button>
-    </div>
-
-    <div id="form-team" class="hidden">
-        <input type="text" id="memberName_WM" placeholder="Имя">
-        <input type="text" id="memberPosition_WM" placeholder="Должность">
-        <input type="text" id="memberTelegram_WM" placeholder="Telegram (без @)">
-        <button onclick="saveToTeam()">Сохранить в команду</button>
-    </div><hr>
-
-    <!-- Списки элементов -->
-    <h2 style="text-align:center;margin-bottom:20px;color:#ff6b6b;">Существующие данные</h2>
+    <!-- Список существующих отзывов -->
+    <h2 style="text-align:center;margin-top:30px;color:#ff6b6b;">Существующие отзывы</h2>
     <div id="reviewsList"></div>
-    <div id="servicesList"></div>
-    <div id="portfolioList"></div>
-    <div id="teamList"></div>
 
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script>
+    // 🔑 Firebase config
     const firebaseConfig = {
         apiKey: "AIzaSyCDaptwQubkzkAkHSSi_GpMhRHFasWFXvw",
         authDomain: "moonstudio-db.firebaseapp.com",
@@ -134,18 +95,20 @@
 
     let currentWatermarkedData = null;
 
-    function readFile(e, callback) {
+    // --- Чтение файла ---
+    function readFile(e, c) {
         const r = new FileReader();
-        r.onload = () => callback(r.result);
+        r.onload = () => c(r.result);
         r.readAsDataURL(e.target.files[0]);
     }
 
+    // --- Наложение водяного знака ---
     function applyWatermark(url, callback) {
         const cv = document.createElement("canvas");
         const ctx = cv.getContext("2d");
 
         const img = new Image();
-        img.crossOrigin = "Anonymous"; // 🔑 Обязательно!
+        img.crossOrigin = "Anonymous"; // 🔑 Обязательно для внешних изображений
         img.src = url;
 
         img.onload = () => {
@@ -165,12 +128,13 @@
 
             cv.toBlob(blob => {
                 const fr = new FileReader();
-                fr.onload = () => callback(fr.result); // base64
+                fr.onload = () => callback(fr.result);
                 fr.readAsDataURL(blob);
             }, "image/png");
         };
     }
 
+    // --- Предпросмотр водяного знака ---
     function previewWatermarked() {
         const f = document.getElementById("waterImageInput");
         if (!f.files[0]) return alert("Выберите фото");
@@ -187,9 +151,12 @@
     function handleTargetSelect() {
         const block = document.getElementById("targetBlock").value;
         document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
-        if (block) document.getElementById("form-" + block).classList.remove("hidden");
+        if (block === "reviews") {
+            document.getElementById("form-review").classList.remove("hidden");
+        }
     }
 
+    // --- Сохранение отзыва ---
     function saveToReview() {
         const t = document.getElementById("reviewText_WM").value.trim();
         const a = document.getElementById("reviewAuthor_WM").value.trim();
@@ -201,167 +168,68 @@
         refPath(`reviews/${id}`).set({ text:t, author:a, rating:r, image:currentWatermarkedData }, () => {
             alert("Отзыв добавлен"); loadReviews();
             clearFields(["reviewText_WM", "reviewAuthor_WM", "reviewRating_WM"]);
-            document.getElementById("targetBlock").value = "";
-            document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
+            document.getElementById("waterImageInput").value = "";
+            document.getElementById("form-review").classList.add("hidden");
+            document.getElementById("waterPreview").style.display = "none";
             currentWatermarkedData = null;
         });
     }
 
-    function saveToService() {
-        const t = document.getElementById("serviceName_WM").value.trim();
-        const d = document.getElementById("serviceDescription_WM").value.trim();
+    // --- Загрузка отзывов ---
+    function loadReviews() {
+        refPath("reviews").on("value", snap => {
+            const container = document.getElementById("reviewsList");
+            container.innerHTML = "<h3>Отзывы</h3>";
 
-        if (!t || !d || !currentWatermarkedData) return alert("Заполните данные и загрузите фото");
-
-        const id = Date.now();
-        refPath(`services/${id}`).set({ title:t, description:d, image:currentWatermarkedData }, () => {
-            alert("Услуга добавлена"); loadServices();
-            clearFields(["serviceName_WM", "serviceDescription_WM"]);
-            document.getElementById("targetBlock").value = "";
-            document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
-            currentWatermarkedData = null;
-        });
-    }
-
-    function saveToPortfolio() {
-        if (!currentWatermarkedData) return alert("Сначала загрузите фото");
-
-        const id = Date.now();
-        refPath(`portfolio/${id}`).set({ image:currentWatermarkedData }, () => {
-            alert("Фото добавлено"); loadPortfolio();
-            document.getElementById("targetBlock").value = "";
-            document.getElementById("form-portfolio").classList.add("hidden");
-            currentWatermarkedData = null;
-        });
-    }
-
-    function saveToTeam() {
-        const name = document.getElementById("memberName_WM").value.trim();
-        const pos = document.getElementById("memberPosition_WM").value.trim();
-        const tel = document.getElementById("memberTelegram_WM").value.trim();
-
-        if (!name || !pos || !currentWatermarkedData) return alert("Заполните имя и должность");
-
-        const id = Date.now();
-        refPath(`team/${id}`).set({ name, position:pos, telegram:tel, avatar:currentWatermarkedData }, () => {
-            alert("Сотрудник добавлен"); loadTeam();
-            clearFields(["memberName_WM", "memberPosition_WM", "memberTelegram_WM"]);
-            document.getElementById("targetBlock").value = "";
-            document.getElementById("form-team").classList.add("hidden");
-            currentWatermarkedData = null;
-        });
-    }
-
-    function editItem(id, type) {
-        refPath(`${type}/${id}`).once("value", snap => {
-            const data = snap.val();
-            if (!data) return;
-
-            if (type === "reviews") {
-                document.getElementById("reviewText_WM").value = data.text;
-                document.getElementById("reviewAuthor_WM").value = data.author;
-                document.getElementById("reviewRating_WM").value = data.rating;
-                document.getElementById("targetBlock").value = "reviews";
-                document.getElementById("form-review").classList.remove("hidden");
-                currentWatermarkedData = data.image;
-            } else if (type === "services") {
-                document.getElementById("serviceName_WM").value = data.title;
-                document.getElementById("serviceDescription_WM").value = data.description;
-                document.getElementById("targetBlock").value = "services";
-                document.getElementById("form-service").classList.remove("hidden");
-                currentWatermarkedData = data.image;
-            } else if (type === "portfolio") {
-                document.getElementById("targetBlock").value = "portfolio";
-                document.getElementById("form-portfolio").classList.remove("hidden");
-                currentWatermarkedData = data.image;
-            } else if (type === "team") {
-                document.getElementById("memberName_WM").value = data.name;
-                document.getElementById("memberPosition_WM").value = data.position;
-                document.getElementById("memberTelegram_WM").value = data.telegram;
-                document.getElementById("targetBlock").value = "team";
-                document.getElementById("form-team").classList.remove("hidden");
-                currentWatermarkedData = data.avatar;
-            }
-        });
-    }
-
-    function deleteItem(id, type) {
-        if (confirm("Вы уверены?")) {
-            refPath(`${type}/${id}`).remove(() => window[`load${type.charAt(0).toUpperCase()+type.slice(1)]`();
-        });
-    }
-
-    function loadData(path, containerId, template) {
-        refPath(path).on("value", snap => {
-            const container = document.getElementById(containerId);
-            container.innerHTML = `<h3>${containerId}</h3>`;
             if (!snap.exists()) return;
 
             snap.forEach(child => {
                 const d = child.val();
                 const div = document.createElement("div");
                 div.className = "block-item";
-                div.innerHTML = template(d, child.key);
+                div.innerHTML = `
+                    "${d.text}" — ${d.author}<br>⭐ ${d.rating}<br>
+                    <img src="${d.image}" width="100%"><br>
+                    <div class="actions">
+                        <button onclick="editItem('${child.key}', 'reviews')">Редактировать</button>
+                        <button onclick="deleteItem('${child.key}', 'reviews')">Удалить</button>
+                    </div>`;
                 container.appendChild(div);
             });
         });
     }
 
-    function loadReviews() {
-        loadData("reviews", "reviewsList", d => `
-            "${d.text}" — ${d.author}<br>⭐ ${d.rating}<br>
-            <img src="${d.image}" width="100%"><br>
-            <div class="actions">
-                <button onclick="editItem('${child.key}', 'reviews')">Редактировать</button>
-                <button onclick="deleteItem('${child.key}', 'reviews')">Удалить</button>
-            </div>
-        `);
+    // --- Редактирование ---
+    function editItem(id, type) {
+        refPath(`${type}/${id}`).once("value", snap => {
+            const data = snap.val();
+            if (type === "reviews") {
+                document.getElementById("reviewText_WM").value = data.text;
+                document.getElementById("reviewAuthor_WM").value = data.author;
+                document.getElementById("reviewRating_WM").value = data.rating;
+
+                currentWatermarkedData = data.image;
+                document.getElementById("form-review").classList.remove("hidden");
+            }
+        });
     }
 
-    function loadServices() {
-        loadData("services", "servicesList", d => `
-            <strong>${d.title}</strong><br>${d.description}<br>
-            <img src="${d.image}" width="100%"><br>
-            <div class="actions">
-                <button onclick="editItem('${child.key}', 'services')">Редактировать</button>
-                <button onclick="deleteItem('${child.key}', 'services')">Удалить</button>
-            </div>
-        `);
+    // --- Удаление ---
+    function deleteItem(id, type) {
+        if (confirm("Вы уверены?")) {
+            refPath(`${type}/${id}`).remove(() => window[`load${type.charAt(0).toUpperCase()+type.slice(1)]`();
+        });
     }
 
-    function loadPortfolio() {
-        loadData("portfolio", "portfolioList", d => `
-            <img src="${d.image}" width="100%"><br>
-            <div class="actions">
-                <button onclick="editItem('${child.key}', 'portfolio')">Редактировать</button>
-                <button onclick="deleteItem('${child.key}', 'portfolio')">Удалить</button>
-            </div>
-        `);
-    }
-
-    function loadTeam() {
-        loadData("team", "teamList", d => `
-            <img src="${d.avatar}" width="100%"><br><strong>${d.name}</strong><br>${d.position}<br>
-            ${d.telegram ? `<a href="https://t.me/${d.telegram}" target="_blank">@${d.telegram}</a><br>` : ''}
-            <div class="actions">
-                <button onclick="editItem('${child.key}', 'team')">Редактировать</button>
-                <button onclick="deleteItem('${child.key}', 'team')">Удалить</button>
-            </div>
-        `);
-    }
-
+    // --- Вспомогательные ---
     function clearFields(ids) {
         ids.forEach(id => document.getElementById(id).value = "");
     }
 
     window.onload = () => {
-        document.getElementById("waterImageInput").onchange = previewWatermarked;
-        document.getElementById("targetBlock").onchange = handleTargetSelect;
-
         loadReviews();
-        loadServices();
-        loadPortfolio();
-        loadTeam();
+        document.getElementById("targetBlock").value = "reviews";
+        handleTargetSelect();
     };
 </script>
 </body>
