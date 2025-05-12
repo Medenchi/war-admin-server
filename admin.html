@@ -65,7 +65,6 @@
         <input type="text" id="memberName_WM" placeholder="Имя">
         <input type="text" id="memberPosition_WM" placeholder="Должность">
         <input type="text" id="memberTelegram_WM" placeholder="Telegram (без @)">
-        <input type="file" id="memberAvatar_WM" accept="image/*">
         <button onclick="saveToTeam()">Сохранить в команду</button>
     </div><hr>
 
@@ -100,7 +99,7 @@
         r.readAsDataURL(e.target.files[0]);
     }
 
-    function applyWatermark(url, c) {
+    function applyWatermark(url, callback) {
         const cv = document.createElement("canvas");
         const ctx = cv.getContext("2d");
         const img = new Image(); img.crossOrigin = "Anonymous"; img.src = url;
@@ -108,6 +107,7 @@
         img.onload = () => {
             cv.width = img.width; cv.height = img.height;
             ctx.drawImage(img, 0, 0);
+
             ctx.font = "bold 30px sans-serif";
             ctx.fillStyle = "rgba(255,255,255,0.3)";
             ctx.textAlign = "center";
@@ -118,10 +118,10 @@
                 ctx.fillText("SigmaGamblers", x, y);
             }
 
-            cv.toBlob(b => {
+            cv.toBlob(blob => {
                 const fr = new FileReader();
-                fr.onload = () => c(fr.result);
-                fr.readAsDataURL(b);
+                fr.onload = () => callback(fr.result);
+                fr.readAsDataURL(blob);
             }, "image/png");
         };
     }
@@ -130,11 +130,15 @@
         const f = document.getElementById("waterImageInput");
         if (!f.files[0]) return alert("Выберите фото");
 
-        readFile(f, d => applyWatermark(d, w => {
-            document.getElementById("waterPreview").src = w;
-            document.getElementById("waterPreview").style.display = "block";
-            currentWatermarkedData = w;
-        }));
+        readFile(f, d => {
+            const img = new Image();
+            img.onload = () => applyWatermark(d, w => {
+                document.getElementById("waterPreview").src = w;
+                document.getElementById("waterPreview").style.display = "block";
+                currentWatermarkedData = w;
+            });
+            img.src = d;
+        });
     }
 
     function handleTargetSelect() {
@@ -147,6 +151,7 @@
         const t = document.getElementById("reviewText_WM").value.trim();
         const a = document.getElementById("reviewAuthor_WM").value.trim();
         const r = parseFloat(document.getElementById("reviewRating_WM").value.trim());
+
         if (!t || !a || !r || !currentWatermarkedData) return alert("Заполните поля и загрузите фото");
 
         const id = Date.now();
@@ -154,7 +159,7 @@
             alert("Отзыв добавлен"); loadReviews();
             clearFields(["reviewText_WM", "reviewAuthor_WM", "reviewRating_WM"]);
             document.getElementById("targetBlock").value = "";
-            document.getElementById("form-review").classList.add("hidden");
+            document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
             currentWatermarkedData = null;
         });
     }
@@ -162,6 +167,7 @@
     function saveToService() {
         const t = document.getElementById("serviceName_WM").value.trim();
         const d = document.getElementById("serviceDescription_WM").value.trim();
+
         if (!t || !d || !currentWatermarkedData) return alert("Заполните данные и загрузите фото");
 
         const id = Date.now();
@@ -169,13 +175,14 @@
             alert("Услуга добавлена"); loadServices();
             clearFields(["serviceName_WM", "serviceDescription_WM"]);
             document.getElementById("targetBlock").value = "";
-            document.getElementById("form-service").classList.add("hidden");
+            document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
             currentWatermarkedData = null;
         });
     }
 
     function saveToPortfolio() {
         if (!currentWatermarkedData) return alert("Сначала загрузите фото");
+
         const id = Date.now();
         refPath(`portfolio/${id}`).set({ image:currentWatermarkedData }, () => {
             alert("Фото добавлено"); loadPortfolio();
@@ -189,12 +196,11 @@
         const name = document.getElementById("memberName_WM").value.trim();
         const pos = document.getElementById("memberPosition_WM").value.trim();
         const tel = document.getElementById("memberTelegram_WM").value.trim();
-        const avatar = currentWatermarkedData;
 
-        if (!name || !pos || !avatar) return alert("Заполните имя и должность");
+        if (!name || !pos || !currentWatermarkedData) return alert("Заполните имя и должность");
 
         const id = Date.now();
-        refPath(`team/${id}`).set({ name, position:pos, telegram:tel, avatar }, () => {
+        refPath(`team/${id}`).set({ name, position:pos, telegram:tel, avatar:currentWatermarkedData }, () => {
             alert("Сотрудник добавлен"); loadTeam();
             clearFields(["memberName_WM", "memberPosition_WM", "memberTelegram_WM"]);
             document.getElementById("targetBlock").value = "";
@@ -206,19 +212,19 @@
     function editItem(id, type) {
         refPath(`${type}/${id}`).once("value", snap => {
             const data = snap.val();
-            if (!data) return;
-
             if (type === "reviews") {
                 document.getElementById("reviewText_WM").value = data.text;
                 document.getElementById("reviewAuthor_WM").value = data.author;
                 document.getElementById("reviewRating_WM").value = data.rating;
                 document.getElementById("targetBlock").value = "reviews";
                 document.getElementById("form-review").classList.remove("hidden");
+                currentWatermarkedData = data.image;
             } else if (type === "services") {
                 document.getElementById("serviceName_WM").value = data.title;
                 document.getElementById("serviceDescription_WM").value = data.description;
                 document.getElementById("targetBlock").value = "services";
                 document.getElementById("form-service").classList.remove("hidden");
+                currentWatermarkedData = data.image;
             } else if (type === "portfolio") {
                 document.getElementById("targetBlock").value = "portfolio";
                 document.getElementById("form-portfolio").classList.remove("hidden");
@@ -308,10 +314,6 @@
         loadServices();
         loadPortfolio();
         loadTeam();
-
-        refPath("contacts").once("value", s => {
-            document.getElementById("contactInfo").value = s.val() || "Telegram: @yourusername<br>Email: example@example.com";
-        });
     };
 </script>
 </body>
