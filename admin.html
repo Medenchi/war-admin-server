@@ -14,7 +14,6 @@
             line-height: 1.6;
             padding: 40px;
         }
-
         .dashboard {
             max-width: 500px;
             margin: auto;
@@ -22,60 +21,49 @@
             padding: 30px;
             border-radius: 10px;
         }
-
         input, textarea, button, select {
             width: 100%;
             margin-top: 10px;
             padding: 10px;
             font-size: 14px;
         }
-
         button {
             background: #ff6b6b;
             color: #fff;
             border: none;
             cursor: pointer;
         }
-
         h2.section-title {
             text-align: center;
             margin-top: 30px;
             color: #ff6b6b;
         }
-
         .edit-form {
             margin-top: 20px;
             background: #2a2a2a;
             padding: 15px;
             border-radius: 10px;
         }
-
         .block-item {
             background: #333;
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 5px;
         }
-
         .hidden {
             display: none !important;
         }
     </style>
 </head>
 <body>
-
 <div class="dashboard">
-
     <!-- Настройки водяного знака -->
     <h2 class="section-title">Настройки вотермаркера</h2>
     <label>Прозрачность: <span id="opacityValue">0.3</span></label>
     <input type="range" min="0.1" max="0.5" step="0.05" value="0.3" id="wmOpacity" oninput="document.getElementById('opacityValue').innerText = this.value;">
-    
     <label>Интенсивность: <span id="intensityValue">20</span></label>
     <input type="range" min="5" max="50" step="5" value="20" id="wmIntensity" oninput="document.getElementById('intensityValue').innerText = this.value;">
-
     <hr>
-
     <!-- Блок Вотерпреобразовалка -->
     <h2 class="section-title">ВОТЕРПРЕОБРАЗОВАЛКА</h2>
     <input type="file" id="waterImageInput" accept="image/*" onchange="previewWatermarked()">
@@ -85,12 +73,10 @@
         <option value="services">Добавить в услуги</option>
         <option value="portfolio">Добавить в портфолио</option>
     </select><br>
-
     <div style="text-align:center;">
         <p>Предпросмотр:</p>
         <img id="waterPreview" src="" alt="С водяным знаком" style="display:none; max-width:100%;">
     </div>
-
     <!-- Формы для блоков с водяным знаком -->
     <div id="form-review" class="edit-form hidden">
         <textarea id="reviewText_WM" placeholder="Текст отзыва"></textarea>
@@ -98,29 +84,23 @@
         <input type="number" id="reviewRating_WM" min="1" max="5" step="0.1" placeholder="Рейтинг">
         <button onclick="saveToReview()">Сохранить в отзывы</button>
     </div>
-
     <div id="form-service" class="edit-form hidden">
         <input type="text" id="serviceName_WM" placeholder="Название услуги">
         <textarea id="serviceDescription_WM" placeholder="Описание услуги"></textarea>
         <button onclick="saveToService()">Сохранить в услуги</button>
     </div>
-
     <div id="form-portfolio" class="edit-form hidden">
         <button onclick="saveToPortfolio()">Сохранить в портфолио</button>
     </div><hr>
-
     <!-- Отзывы -->
     <h2 class="section-title">Отзывы</h2>
     <div id="reviewsList"></div><hr>
-
     <!-- Услуги -->
     <h2 class="section-title">Услуги</h2>
     <div id="servicesList"></div><hr>
-
     <!-- Портфолио -->
     <h2 class="section-title">Портфолио</h2>
     <div id="portfolioList"></div><hr>
-
     <!-- Сотрудники (без водяного знака) -->
     <h2 class="section-title">Сотрудники</h2>
     <input type="text" id="memberName" placeholder="Имя">
@@ -129,13 +109,11 @@
     <input type="file" id="memberAvatarFile" accept="image/*">
     <button onclick="addTeamMember()">Добавить сотрудника</button>
     <div id="teamList"></div><hr>
-
     <!-- Контакты -->
     <h2 class="section-title">Контакты</h2>
     <textarea id="contactInfo">Telegram: @yourusername<br>Email: example@example.com</textarea>
     <button onclick="saveContacts()">Сохранить контакты</button>
 </div>
-
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script>
@@ -147,14 +125,11 @@
         projectId: "moonstudio-db",
         storageBucket: "moonstudio-db.firebasestorage.app"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
     function refPath(path) {
         return db.ref(path);
     }
-
     let currentWatermarkedData = null;
 
     // --- Чтение файла ---
@@ -168,30 +143,24 @@
     async function applyWatermark(imageUrl, callback) {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
-
         const img = new Image();
         img.crossOrigin = "Anonymous";
         img.src = imageUrl;
-
         img.onload = () => {
             canvas.width = img.width;
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
-
             // Настройки
             const opacity = document.getElementById("wmOpacity").value;
             const intensity = document.getElementById("wmIntensity").value;
-
             ctx.font = "bold 30px Montserrat";
             ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
             ctx.textAlign = "center";
-
             for (let i = 0; i < intensity; i++) {
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height;
                 ctx.fillText("SigmaGamblers", x, y);
             }
-
             // Экспорт
             canvas.toBlob(blob => {
                 const reader = new FileReader();
@@ -205,7 +174,6 @@
     function previewWatermarked() {
         const fileInput = document.getElementById("waterImageInput");
         if (!fileInput.files[0]) return alert("Выберите фото");
-
         readFileAsDataURL(fileInput.files[0], imageData => {
             applyWatermark(imageData, watermarkedData => {
                 document.getElementById("waterPreview").src = watermarkedData;
@@ -219,7 +187,6 @@
     function handleTargetSelect() {
         const block = document.getElementById("targetBlock").value;
         document.querySelectorAll("[id^='form-']").forEach(el => el.classList.add("hidden"));
-
         if (block === "reviews") {
             document.getElementById("form-review").classList.remove("hidden");
         } else if (block === "services") {
@@ -234,12 +201,10 @@
         const text = document.getElementById("reviewText_WM").value.trim();
         const author = document.getElementById("reviewAuthor_WM").value.trim();
         const rating = parseFloat(document.getElementById("reviewRating_WM").value.trim());
-
         if (!text || !author || !rating || !currentWatermarkedData) {
             alert("Заполните все поля и выберите фото");
             return;
         }
-
         const id = Date.now();
         refPath(`reviews/${id}`).set({ text, author, rating, image: currentWatermarkedData }, err => {
             if (err) {
@@ -259,12 +224,10 @@
     function saveToService() {
         const title = document.getElementById("serviceName_WM").value.trim();
         const description = document.getElementById("serviceDescription_WM").value.trim();
-
         if (!title || !description || !currentWatermarkedData) {
             alert("Заполните данные и загрузите фото");
             return;
         }
-
         const id = Date.now();
         refPath(`services/${id}`).set({ title, description, image: currentWatermarkedData }, err => {
             if (err) {
@@ -286,7 +249,6 @@
             alert("Сначала загрузите и обработайте фото");
             return;
         }
-
         const id = Date.now();
         refPath(`portfolio/${id}`).set({ image: currentWatermarkedData }, err => {
             if (err) {
@@ -308,12 +270,10 @@
         const telegram = document.getElementById("memberTelegram").value.trim();
         const fileInput = document.getElementById("memberAvatarFile");
         const file = fileInput.files[0];
-
         if (!name || !position || !file) {
             alert("Заполните имя, должность и аватар");
             return;
         }
-
         readFileAsDataURL(file, imageData => {
             const id = Date.now();
             refPath(`team/${id}`).set({ name, position, telegram, avatar: imageData }, err => {
@@ -339,11 +299,9 @@
             document.getElementById("memberName").value = data.name;
             document.getElementById("memberPosition").value = data.position;
             document.getElementById("memberTelegram").value = data.telegram;
-
             document.getElementById("memberAvatarFile").onchange = () => {
                 const file = document.getElementById("memberAvatarFile").files[0];
                 if (!file) return;
-
                 readFileAsDataURL(file, imageData => {
                     refPath(`team/${id}`).update({
                         name: document.getElementById("memberName").value,
@@ -370,9 +328,7 @@
         refPath("team").on("value", snapshot => {
             const container = document.getElementById("teamList");
             container.innerHTML = "<h3>Сотрудники</h3>";
-
             if (!snapshot.exists()) return;
-
             snapshot.forEach(child => {
                 const t = child.val();
                 const div = document.createElement("div");
@@ -406,6 +362,7 @@
                         ⭐ ${r.rating}<br>
                         <img src="${r.image}" width="100"><br>
                         <button onclick="convertExisting('${key}', 'reviews')">Преобразовать в ВМ</button>
+                        <button onclick="deleteReview('${key}')">Удалить</button>
                     </div>`;
             });
         });
@@ -445,7 +402,6 @@
         refPath(`${type}/${key}`).once("value", snap => {
             const val = snap.val();
             if (!val.image) return alert("Элемент не содержит изображения");
-
             applyWatermark(val.image, watermarked => {
                 refPath(`${type}/${key}`).update({ image: watermarked }, err => {
                     if (err) {
@@ -478,20 +434,22 @@
         ids.forEach(id => document.getElementById(id).value = "");
     }
 
+    function deleteReview(id) {
+        if (!confirm("Вы уверены, что хотите удалить этот отзыв?")) return;
+        refPath(`reviews/${id}`).remove(() => loadReviews());
+    }
+
     window.onload = () => {
         document.getElementById("wmOpacity").addEventListener("input", e => {
             document.getElementById("opacityValue").innerText = e.target.value;
         });
-
         document.getElementById("wmIntensity").addEventListener("input", e => {
             document.getElementById("intensityValue").innerText = e.target.value;
         });
-
         loadReviews();
         loadServices();
         loadPortfolio();
         loadTeam();
-
         refPath("contacts").once("value", snap => {
             document.getElementById("contactInfo").value = snap.val() || "Telegram: @yourusername<br>Email: example@example.com";
         });
