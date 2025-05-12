@@ -5,22 +5,63 @@
     <title>Админка SigmaGamblers</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:sans-serif; background:#111; color:#fff; line-height:1.6; padding:20px; }
-        input, textarea, button, select {
-            width:100%; margin-top:10px; padding:10px; font-size:14px;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: sans-serif;
+            background: #111;
+            color: #fff;
+            line-height: 1.6;
+            padding: 20px;
         }
-        button {
-            background:#ff6b6b; color:#fff; border:none; cursor:pointer;
-        }
+
         .dashboard {
-            max-width:500px; margin:auto; background:#222; padding:20px; border-radius:10px;
+            max-width: 500px;
+            margin: auto;
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
         }
+
+        input, textarea, button, select {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        h2.section-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ff6b6b;
+        }
+
         .block-item {
-            background:#333; padding:10px; margin-bottom:10px; border-radius:5px;
+            background: #333;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
         }
-        .actions { margin-top:10px; }
-        .hidden { display:none !important; }
+
+        .actions {
+            margin-top: 10px;
+        }
+
+        .actions button {
+            margin-right: 10px;
+            font-size: 14px;
+            padding: 6px 10px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -28,7 +69,7 @@
 <div class="dashboard">
 
     <!-- Вотерпреобразовалка -->
-    <h2 style="text-align:center;margin-bottom:20px;color:#ff6b6b;">ВОТЕРПРЕОБРАЗОВАЛКА</h2>
+    <h2 style="text-align:center;color:#ff6b6b;">ВОТЕРПРЕОБРАЗОВАЛКА</h2>
     <input type="file" id="waterImageInput" accept="image/*" onchange="previewWatermarked()">
     <select id="targetBlock" onchange="handleTargetSelect()">
         <option value="">Выберите тип</option>
@@ -93,19 +134,23 @@
 
     let currentWatermarkedData = null;
 
-    function readFile(e, c) {
+    function readFile(e, callback) {
         const r = new FileReader();
-        r.onload = () => c(r.result);
+        r.onload = () => callback(r.result);
         r.readAsDataURL(e.target.files[0]);
     }
 
     function applyWatermark(url, callback) {
         const cv = document.createElement("canvas");
         const ctx = cv.getContext("2d");
-        const img = new Image(); img.crossOrigin = "Anonymous"; img.src = url;
+
+        const img = new Image();
+        img.crossOrigin = "Anonymous"; // 🔑 Обязательно!
+        img.src = url;
 
         img.onload = () => {
-            cv.width = img.width; cv.height = img.height;
+            cv.width = img.width;
+            cv.height = img.height;
             ctx.drawImage(img, 0, 0);
 
             ctx.font = "bold 30px sans-serif";
@@ -120,7 +165,7 @@
 
             cv.toBlob(blob => {
                 const fr = new FileReader();
-                fr.onload = () => callback(fr.result);
+                fr.onload = () => callback(fr.result); // base64
                 fr.readAsDataURL(blob);
             }, "image/png");
         };
@@ -131,13 +176,11 @@
         if (!f.files[0]) return alert("Выберите фото");
 
         readFile(f, d => {
-            const img = new Image();
-            img.onload = () => applyWatermark(d, w => {
+            applyWatermark(d, w => {
                 document.getElementById("waterPreview").src = w;
                 document.getElementById("waterPreview").style.display = "block";
                 currentWatermarkedData = w;
             });
-            img.src = d;
         });
     }
 
@@ -212,6 +255,8 @@
     function editItem(id, type) {
         refPath(`${type}/${id}`).once("value", snap => {
             const data = snap.val();
+            if (!data) return;
+
             if (type === "reviews") {
                 document.getElementById("reviewText_WM").value = data.text;
                 document.getElementById("reviewAuthor_WM").value = data.author;
@@ -310,6 +355,9 @@
     }
 
     window.onload = () => {
+        document.getElementById("waterImageInput").onchange = previewWatermarked;
+        document.getElementById("targetBlock").onchange = handleTargetSelect;
+
         loadReviews();
         loadServices();
         loadPortfolio();
